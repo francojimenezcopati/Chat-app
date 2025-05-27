@@ -17,6 +17,13 @@ public class ChatService {
 	private final ChatRepository chatRepository;
 	private final AppUserRepository appUserRepository;
 
+	public ResponseDTO getAll() {
+		List<Chat> chats = this.chatRepository.findAll();
+		List<ChatDTO> chatDTOS = chats.stream().map(this.chatDTOMapper).toList();
+
+		return new ResponseDTO(true, "", chatDTOS, HttpStatus.OK);
+	}
+
 	public ResponseDTO createChat(String creator, List<String> participantsNames) {
 		Optional<AppUser> optionalCreatedBy = this.appUserRepository.findByUsernameIgnoreCase(creator);
 		if (optionalCreatedBy.isPresent()) {
@@ -46,5 +53,27 @@ public class ChatService {
 		} else {
 			return new ResponseDTO(false, "Creator not found", null, HttpStatus.NOT_FOUND);
 		}
+	}
+
+	public ResponseDTO addNewUsers(Long chatId, List<String> usernames) {
+		try {
+			List<AppUser> newUsers = usernames.stream().map(this.appUserRepository::findByUsernameIgnoreCase).map(Optional::orElseThrow).toList();
+
+			Optional<Chat> optionalChat = this.chatRepository.findById(chatId);
+			if(optionalChat.isPresent()){
+				Chat chat = optionalChat.get();
+
+				chat.getParticipants().addAll(newUsers);
+
+				this.chatRepository.save(chat);
+
+				return new ResponseDTO(true, "Users successfully added", null, HttpStatus.OK);
+			}else{
+				return new ResponseDTO(false, "Chat not found", null, HttpStatus.NOT_FOUND);
+			}
+		}catch (Exception e){
+			return new ResponseDTO(false, "One or more of the users not found", null, HttpStatus.NOT_FOUND);
+		}
+
 	}
 }

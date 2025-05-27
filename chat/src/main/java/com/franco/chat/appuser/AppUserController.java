@@ -11,10 +11,19 @@ import org.springframework.web.bind.annotation.*;
 public class AppUserController {
 	private final AppUserService appUserService;
 
+	@GetMapping
+	public ResponseEntity<ResponseDTO> getAll(){
+		ResponseDTO responseDTO = this.appUserService.getAll();
+
+		return new ResponseEntity<>(responseDTO, responseDTO.status());
+	}
+
 	@PostMapping
 	public ResponseEntity<ResponseDTO> createUser(@RequestBody AppUserRequest request) {
 		ResponseDTO responseDTO = this.appUserService.createAppUser(request.name());
 
 		return new ResponseEntity<>(responseDTO, responseDTO.status());
 	}
+
+
 }

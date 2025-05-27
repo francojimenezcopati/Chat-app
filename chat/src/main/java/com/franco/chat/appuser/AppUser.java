@@ -38,12 +38,7 @@ public class AppUser {
 	)
 	private List<Message> messages;
 
-	@ManyToMany
-	@JoinTable(
-			name = "app_user_chat",
-			joinColumns = @JoinColumn(name = "app_user_id"),
-			inverseJoinColumns = @JoinColumn(name = "chat_id")
-	)
+	@ManyToMany(mappedBy = "participants")
 	private List<Chat> chats;
 
 	public AppUser(String username) {

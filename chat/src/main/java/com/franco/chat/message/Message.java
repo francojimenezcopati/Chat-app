@@ -34,4 +34,12 @@ public class Message {
 	private AppUser appUser;
 	@ManyToOne
 	private Chat chat;
+
+	public Message(String content, String username, AppUser appUser, Chat chat) {
+		this.content = content;
+		this.createdAt = new Date();
+		this.username = username;
+		this.appUser = appUser;
+		this.chat = chat;
+	}
 }

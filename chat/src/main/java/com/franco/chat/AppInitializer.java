@@ -1,11 +1,15 @@
 package com.franco.chat;
 
 import com.franco.chat.appuser.AppUserService;
+import com.franco.chat.message.Message;
+import com.franco.chat.message.MessageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+
+import java.util.Date;
 
 @Component
 @RequiredArgsConstructor
@@ -20,8 +24,6 @@ public class AppInitializer implements CommandLineRunner {
 	public void run(String... args) {
 		if (sampleData) {
 			var res = this.appUserService.createAppUser("Pepito");
-
-
 
 			System.out.println("\n\n\n\n");
 			System.out.println("Message: " + res.message());

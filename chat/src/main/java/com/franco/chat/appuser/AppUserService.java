@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class AppUserService {
@@ -24,5 +26,13 @@ public class AppUserService {
 		AppUserDTO appUserDTO = this.appUserDTOMapper.apply(savedUser);
 
 		return new ResponseDTO(true, "User successfully created", appUserDTO, HttpStatus.CREATED);
+	}
+
+	public ResponseDTO getAll() {
+		List<AppUser> appUsers = this.appUserRepository.findAll();
+
+		List<AppUserDTO> appUserDTOS = appUsers.stream().map(this.appUserDTOMapper).toList();
+
+		return new ResponseDTO(true, "", appUserDTOS, HttpStatus.OK);
 	}
 }
