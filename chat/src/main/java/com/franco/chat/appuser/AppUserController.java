@@ -20,7 +20,7 @@ public class AppUserController {
 
 	@PostMapping
 	public ResponseEntity<ResponseDTO> createUser(@RequestBody AppUserRequest request) {
-		ResponseDTO responseDTO = this.appUserService.createAppUser(request.name());
+		ResponseDTO responseDTO = this.appUserService.createAppUser(request.username());
 
 		return new ResponseEntity<>(responseDTO, responseDTO.status());
 	}

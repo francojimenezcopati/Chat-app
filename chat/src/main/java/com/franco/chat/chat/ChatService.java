@@ -86,28 +86,86 @@ public class ChatService {
 		} catch (Exception e) {
 			return new ResponseDTO(false, "One or more of the users not found", null, HttpStatus.NOT_FOUND);
 		}
-
 	}
 
-	public ResponseDTO deleteChat(Long chatId) {
+	public ResponseDTO deleteChat(Long chatId, Long userWithAdminId) {
 		Optional<Chat> optionalChat = this.chatRepository.findById(chatId);
 		try {
 			if (optionalChat.isPresent()) {
-				this.chatRepository.deleteById(chatId);
+				ChatMembership membership = this.chatMembershipRepository.findByAppUserIdAndChatId(
+						userWithAdminId,
+						chatId
+				).orElseThrow();
 
-				//Esto vvvvv no hace falta porque agregue CASCADE_TYPE.ALL en la clase "Chat"
-//				List<ChatMembership> chatMemberships = this.chatMembershipRepository.findAllByChatId(chatId);
-//				this.chatMembershipRepository.deleteAll(chatMemberships);
+				if (membership.isAdmin()) {
+					this.chatRepository.deleteById(chatId);
 
-				return new ResponseDTO(true, "Chat successfully deleted", null, HttpStatus.OK);
+					//Esto vvvvv no hace falta porque agregue CASCADE_TYPE.ALL en la clase "Chat"
+					//				List<ChatMembership> chatMemberships = this.chatMembershipRepository
+					//				.findAllByChatId(chatId);
+					//				this.chatMembershipRepository.deleteAll(chatMemberships);
+
+					return new ResponseDTO(true, "Chat successfully deleted", null, HttpStatus.OK);
+				} else {
+					return new ResponseDTO(false, "Only admins are able to delete chats", null,
+							HttpStatus.BAD_REQUEST);
+				}
 			} else {
-
 				return new ResponseDTO(false, "Chat not found", null, HttpStatus.NOT_FOUND);
 			}
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
-			return new ResponseDTO(false, "Something went wrong while deleting the chat", null,
-					HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseDTO(
+					false,
+					"Something went wrong while deleting the chat",
+					null,
+					HttpStatus.INTERNAL_SERVER_ERROR
+			);
+		}
+	}
+
+	public ResponseDTO giveAdminToUsers(Long chatId, List<Long> userIds) {
+		Optional<Chat> optionalChat = this.chatRepository.findById(chatId);
+		try {
+			if (optionalChat.isPresent()) {
+				List<ChatMembership> chatMemberships = userIds.stream()
+						.map(id -> this.chatMembershipRepository.findByAppUserIdAndChatId(id, chatId))
+						.map(Optional::orElseThrow)
+						.toList();
+
+				List<ChatMembership> newAdminsMemberships = chatMemberships.stream()
+						.peek(membership -> membership.setAdmin(true))
+						.toList();
+
+				this.chatMembershipRepository.saveAll(newAdminsMemberships);
+
+				return new ResponseDTO(true, "Users successfully converted to admins", null, HttpStatus.OK);
+			} else {
+				return new ResponseDTO(false, "Chat not found", null, HttpStatus.NOT_FOUND);
+			}
+		} catch (Exception e) {
+			return new ResponseDTO(false, "One or more of the users not found", null, HttpStatus.NOT_FOUND);
+		}
+	}
+
+	public ResponseDTO getUserChats(String username) {
+		try {
+			Optional<AppUser> optionalAppUser = this.appUserRepository.findByUsernameIgnoreCase(username);
+			if (optionalAppUser.isPresent()) {
+				AppUser appUser = optionalAppUser.get();
+
+				List<ChatMembership> userMemberships = this.chatMembershipRepository.findAllByAppUser(appUser);
+
+				List<Chat> userChats = userMemberships.stream().map(ChatMembership::getChat).toList();
+
+				List<ChatDTO> userChatDTOs = userChats.stream().map(this.chatDTOMapper).toList();
+
+				return new ResponseDTO(true, "", userChatDTOs, HttpStatus.OK);
+			} else {
+				return new ResponseDTO(false, "User not found", null, HttpStatus.NOT_FOUND);
+			}
+		} catch (Exception e) {
+			return new ResponseDTO(false, "One or more of the users not found", null, HttpStatus.NOT_FOUND);
 		}
 	}
 }

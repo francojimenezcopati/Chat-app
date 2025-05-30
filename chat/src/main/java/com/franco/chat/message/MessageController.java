@@ -25,6 +25,13 @@ public class MessageController {
 		return new ResponseEntity<>(res, res.status());
 	}
 
+	@PutMapping(path = "/{messageId}")
+	public ResponseEntity<ResponseDTO> updateMessage(@PathVariable("messageId") Long messageId, UpdateMessageRequest request){
+		ResponseDTO res = this.messageService.updateMessage(messageId, request.content());
+
+		return new ResponseEntity<>(res, res.status());
+	}
+
 	@DeleteMapping(path = "/{messageId}")
 	public ResponseEntity<ResponseDTO> deleteMessage(@PathVariable("messageId") Long messageId){
 		ResponseDTO res = this.messageService.deleteMessage(messageId);

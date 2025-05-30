@@ -52,8 +52,25 @@ public class MessageService {
 			this.messageRepository.delete(messageToDelete);
 
 			return new ResponseDTO(true, "Message successfully deleted", null, HttpStatus.OK);
-		}catch (Exception e){
-			return new ResponseDTO(false, "Message with id: '" + messageId + "' not found", null, HttpStatus.NOT_FOUND);
+		} catch (Exception e) {
+			return new ResponseDTO(false, "Message with id: '" + messageId + "' not found", null,
+					HttpStatus.NOT_FOUND);
 		}
 	}
+
+	public ResponseDTO updateMessage(Long messageId, String newContent) {
+		try {
+			Message messageToUpdate = this.messageRepository.findById(messageId).orElseThrow();
+
+			messageToUpdate.setContent(newContent);
+
+			this.messageRepository.save(messageToUpdate);
+
+			return new ResponseDTO(true, "Message successfully updated", null, HttpStatus.OK);
+		} catch (Exception e) {
+			return new ResponseDTO(false, "Message with id: '" + messageId + "' not found", null,
+					HttpStatus.NOT_FOUND);
+		}
+	}
+
 }

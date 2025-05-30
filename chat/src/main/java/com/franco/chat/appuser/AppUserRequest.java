@@ -1,4 +1,4 @@
 package com.franco.chat.appuser;
 
-public record AppUserRequest(String name) {
+public record AppUserRequest(String username) {
 }
