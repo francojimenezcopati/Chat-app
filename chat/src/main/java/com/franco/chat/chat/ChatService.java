@@ -16,6 +16,7 @@ public class ChatService {
 	private final ChatDTOMapper chatDTOMapper;
 	private final ChatRepository chatRepository;
 	private final AppUserRepository appUserRepository;
+	private final ChatMembershipRepository chatMembershipRepository;
 
 	public ResponseDTO getAll() {
 		List<Chat> chats = this.chatRepository.findAll();
@@ -24,31 +25,37 @@ public class ChatService {
 		return new ResponseDTO(true, "", chatDTOS, HttpStatus.OK);
 	}
 
-	public ResponseDTO createChat(String creator, List<String> participantsNames) {
+	public ResponseDTO createChat(String creator, List<String> memberNames) {
 		Optional<AppUser> optionalCreatedBy = this.appUserRepository.findByUsernameIgnoreCase(creator);
 		if (optionalCreatedBy.isPresent()) {
 			AppUser createdBy = optionalCreatedBy.get();
 
 			try {
-				List<Optional<AppUser>> optionalParticipants = participantsNames.stream()
+				List<Optional<AppUser>> optionalMembers = memberNames.stream()
 						.map(this.appUserRepository::findByUsernameIgnoreCase)
 						.toList();
 
-				System.out.println(optionalParticipants);
+				List<AppUser> members = optionalMembers.stream().map(Optional::orElseThrow).toList();
 
-				List<AppUser> participants = optionalParticipants.stream()
-						.map(Optional::orElseThrow)
+				Chat chat = new Chat(createdBy);
+
+				Chat savedChat = this.chatRepository.save(chat);
+
+				List<ChatMembership> chatMemberships = members.stream()
+						.map(p -> new ChatMembership(p, savedChat, false))
 						.toList();
 
-				Chat chat = new Chat(createdBy, participants);
+				ChatMembership adminMembership = new ChatMembership(createdBy, savedChat, true);
 
-				Chat createdChat = this.chatRepository.save(chat);
+				this.chatMembershipRepository.saveAll(chatMemberships);
+				this.chatMembershipRepository.save(adminMembership);
 
-				ChatDTO chatDTO = this.chatDTOMapper.apply(createdChat);
+				ChatDTO chatDTO = this.chatDTOMapper.apply(savedChat);
 
 				return new ResponseDTO(true, "Chat successfully created", chatDTO, HttpStatus.CREATED);
 			} catch (Exception e) {
-				return new ResponseDTO(false, "One or more of the participants not found", null, HttpStatus.NOT_FOUND);
+				System.out.println(e.getMessage());
+				return new ResponseDTO(false, "One or more of the members not found", null, HttpStatus.NOT_FOUND);
 			}
 		} else {
 			return new ResponseDTO(false, "Creator not found", null, HttpStatus.NOT_FOUND);
@@ -57,23 +64,50 @@ public class ChatService {
 
 	public ResponseDTO addNewUsers(Long chatId, List<String> usernames) {
 		try {
-			List<AppUser> newUsers = usernames.stream().map(this.appUserRepository::findByUsernameIgnoreCase).map(Optional::orElseThrow).toList();
+			List<AppUser> newUsers = usernames.stream()
+					.map(this.appUserRepository::findByUsernameIgnoreCase)
+					.map(Optional::orElseThrow)
+					.toList();
 
 			Optional<Chat> optionalChat = this.chatRepository.findById(chatId);
-			if(optionalChat.isPresent()){
+			if (optionalChat.isPresent()) {
 				Chat chat = optionalChat.get();
 
-				chat.getParticipants().addAll(newUsers);
+				List<ChatMembership> newChatMemberships = newUsers.stream()
+						.map(user -> new ChatMembership(user, chat, false))
+						.toList();
 
-				this.chatRepository.save(chat);
+				this.chatMembershipRepository.saveAll(newChatMemberships);
 
 				return new ResponseDTO(true, "Users successfully added", null, HttpStatus.OK);
-			}else{
+			} else {
 				return new ResponseDTO(false, "Chat not found", null, HttpStatus.NOT_FOUND);
 			}
-		}catch (Exception e){
+		} catch (Exception e) {
 			return new ResponseDTO(false, "One or more of the users not found", null, HttpStatus.NOT_FOUND);
 		}
 
+	}
+
+	public ResponseDTO deleteChat(Long chatId) {
+		Optional<Chat> optionalChat = this.chatRepository.findById(chatId);
+		try {
+			if (optionalChat.isPresent()) {
+				this.chatRepository.deleteById(chatId);
+
+				//Esto vvvvv no hace falta porque agregue CASCADE_TYPE.ALL en la clase "Chat"
+//				List<ChatMembership> chatMemberships = this.chatMembershipRepository.findAllByChatId(chatId);
+//				this.chatMembershipRepository.deleteAll(chatMemberships);
+
+				return new ResponseDTO(true, "Chat successfully deleted", null, HttpStatus.OK);
+			} else {
+
+				return new ResponseDTO(false, "Chat not found", null, HttpStatus.NOT_FOUND);
+			}
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+			return new ResponseDTO(false, "Something went wrong while deleting the chat", null,
+					HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
 }

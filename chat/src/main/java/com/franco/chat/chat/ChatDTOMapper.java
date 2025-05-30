@@ -1,5 +1,6 @@
 package com.franco.chat.chat;
 
+import com.franco.chat.appuser.AppUser;
 import com.franco.chat.appuser.AppUserDTO;
 import com.franco.chat.appuser.AppUserDTOMapper;
 import com.franco.chat.message.MessageDTO;
@@ -15,12 +16,17 @@ import java.util.function.Function;
 public class ChatDTOMapper implements Function<Chat, ChatDTO> {
 	private final AppUserDTOMapper appUserDTOMapper;
 	private final MessageDTOMapper messageDTOMapper;
+	private final ChatMembershipRepository chatMembershipRepository;
+	private final ChatMembershipDTOMapper chatMembershipDTOMapper;
 
 	@Override
 	public ChatDTO apply(Chat chat) {
-		List<AppUserDTO> participantsDTO = chat.getParticipants().stream().map(this.appUserDTOMapper).toList();
-		List<MessageDTO> messageDTO = chat.getMessages().stream().map(this.messageDTOMapper).toList();
-		return new ChatDTO(chat.getId(), this.appUserDTOMapper.apply(chat.getCreatedBy()), chat.getCreatedAt(), participantsDTO,
-				messageDTO);
+		List<ChatMembership> chatMemberships = this.chatMembershipRepository.findAllByChat(chat);
+		List<ChatMembershipDTO> membersDTO = chatMemberships.stream().map(this.chatMembershipDTOMapper).toList();
+		List<MessageDTO> messagesDTO = chat.getMessages().stream().map(this.messageDTOMapper).toList();
+
+		return new ChatDTO(chat.getId(), this.appUserDTOMapper.apply(chat.getCreatedBy()), chat.getCreatedAt(),
+				membersDTO,
+				messagesDTO);
 	}
 }

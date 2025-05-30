@@ -20,7 +20,7 @@ public class ChatController {
 
 	@PostMapping
 	public ResponseEntity<ResponseDTO> createChat(@RequestBody ChatRequest request) {
-		ResponseDTO responseDTO = this.chatService.createChat(request.creator(), request.participantsNames());
+		ResponseDTO responseDTO = this.chatService.createChat(request.creator(), request.membersNames());
 
 		return new ResponseEntity<>(responseDTO, responseDTO.status());
 	}
@@ -28,6 +28,13 @@ public class ChatController {
 	@PutMapping(path = "{chatId}")
 	public ResponseEntity<ResponseDTO> addNewUsersToChat(@PathVariable("chatId") Long chatId, @RequestBody AddNewUsersToChatRequest request) {
 		ResponseDTO responseDTO = this.chatService.addNewUsers(chatId, request.usernames());
+
+		return new ResponseEntity<>(responseDTO, responseDTO.status());
+	}
+
+	@DeleteMapping(path = "{chatId}")
+	public ResponseEntity<ResponseDTO> deleteChat(@PathVariable("chatId") Long chatId) {
+		ResponseDTO responseDTO = this.chatService.deleteChat(chatId);
 
 		return new ResponseEntity<>(responseDTO, responseDTO.status());
 	}

@@ -1,6 +1,7 @@
 package com.franco.chat.appuser;
 
 import com.franco.chat.chat.Chat;
+import com.franco.chat.chat.ChatMembership;
 import com.franco.chat.message.Message;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -38,8 +39,8 @@ public class AppUser {
 	)
 	private List<Message> messages;
 
-	@ManyToMany(mappedBy = "participants")
-	private List<Chat> chats;
+	@OneToMany(mappedBy = "appUser", cascade = CascadeType.ALL)
+	private List<ChatMembership> chatMemberships;
 
 	public AppUser(String username) {
 		this.username = username;
