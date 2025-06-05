@@ -1,0 +1,14 @@
+.gradient-mask {
+	-webkit-mask-image: linear-gradient(to right, black 65%, transparent 100%);
+	mask-image: linear-gradient(to right, black 65%, transparent 100%);
+	mask-mode: alpha;
+	-webkit-mask-mode: alpha;
+}
+
+input:-webkit-autofill {
+	-webkit-box-shadow: 0 0 0 1000px #334155 inset;
+	/* bg-slate-700 */
+	-webkit-text-fill-color: #f1f5f9;
+	/* text-gray-100 */
+	transition: background-color 5000s ease-in-out 0s;
+}
