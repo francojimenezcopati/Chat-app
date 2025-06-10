@@ -1,0 +1,18 @@
+.gradient-mask {
+	-webkit-mask-image: linear-gradient(
+		to top,
+		rgb(41, 44, 53) 0%,
+		rgb(54, 55, 66) 80%,
+		rgba(40, 43, 54, 0.8) 100%
+	);
+
+	/* mask-image: linear-gradient(to right, black 60%, transparent 100%, ); */
+	mask-image: linear-gradient(
+		to top,
+		rgb(41, 44, 53) 0%,
+		rgb(54, 55, 66) 50%,
+		rgba(40, 43, 54, 0.8) 100%
+	);
+	mask-mode: alpha;
+	-webkit-mask-mode: alpha;
+}
