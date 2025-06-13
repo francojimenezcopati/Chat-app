@@ -1,6 +1,26 @@
+import { useUsernameContext } from "../context/useUsernameContext";
+import type { MessageInterface } from "../utils/types";
 import Message from "./Message";
 
 const Chat = () => {
+	const { username } = useUsernameContext();
+
+	const messages: MessageInterface[] = [
+		{
+			content: "Hola este es mi mensaje de texto",
+			username: "fran",
+		},
+		{
+			username: "chali",
+			content:
+				"asdklfjsdl kadsjfasdjfaskldf jldksf kasdjf lakdsf jalskdfjalsdkfjasdklfjadls kfjadskfjaskl f jals kdfjaldksfjasldkf asdlkf jasdlkfjas lkfasd jsd",
+		},
+		{
+			content: "Fua para loco",
+			username: "fran",
+		},
+	];
+
 	return (
 		<div className="flex flex-col items-center justify-start gradient-mask bg-gradient-to-t from-[#292C35] via-80% via-[#363742] to-[#25262f] w-2/3 h-full rounded-b-xl">
 			{/* TOP BAR */}
@@ -35,15 +55,14 @@ const Chat = () => {
 			{/* Chat space */}
 
 			<div className="flex flex-col w-full h-full p-5 gap-5 overflow-y-auto  custom-scroll">
-				<Message isMine={true} username="" content="Hola este es mi mensaje de texto" />
-				<Message
-					isMine={false}
-					username="chali"
-					content="asdklfjsdl kadsjfasdjfaskldf jldksf kasdjf lakdsf
-								jalskdfjalsdkfjasdklfjadls kfjadskfjaskl f jals kdfjaldksfjasldkf
-								asdlkf jasdlkfjas lkfasd jsd"
-				/>
-				<Message isMine={true} username="" content="Fua para loco" />
+				{messages &&
+					messages.map((message, index) => (
+						<Message
+							key={index}
+							username={message.username}
+							content={message.content}
+						/>
+					))}
 			</div>
 
 			{/* Input message */}

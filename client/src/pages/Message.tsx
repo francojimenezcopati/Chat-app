@@ -1,14 +1,16 @@
+import { useUsernameContext } from "../context/useUsernameContext";
+
 type MessageProps = {
-	isMine: boolean;
 	username: string;
 	content: string;
 	image?: File; // ← Prop opcional
 };
 
-const Message = ({ isMine, username, content, image }: MessageProps) => {
+const Message = ({ username, content, image }: MessageProps) => {
+	const { username: myUsername } = useUsernameContext();
 	return (
 		<div className="">
-			{isMine ? (
+			{myUsername == username ? (
 				<div className="flex justify-end w-full h-fit">
 					<div className="bg-blue-700 text-white flex flex-col justify-start p-2 rounded-2xl rounded-br-none">
 						<p className="">{content}</p>

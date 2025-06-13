@@ -1,23 +1,20 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+// import { BrowserRouter, Route, Routes } from "react-router-dom";
 import WelcomePage from "./pages/WelcomePage";
 import { Toaster } from "sonner";
 import Footer from "./components/Footer";
-import { useState } from "react";
 import ChatPage from "./pages/ChatPage";
+import { UsernameProvider } from "./context/UsernameContext";
+import { useUsernameContext } from "./context/useUsernameContext";
 // import NavBar from "./components/NavBar"
 
 function App() {
-	const [username, setUsername] = useState<string | null>(null);
+	const { username } = useUsernameContext();
 
 	return (
 		<>
 			<Toaster richColors />
 			<div className=" h-screen w-screen">
-				{username == null ? (
-					<WelcomePage setUsername={setUsername} />
-				) : (
-					<ChatPage username={username} />
-				)}
+				{username == "" ? <WelcomePage /> : <ChatPage />}
 			</div>
 			<Footer />
 		</>

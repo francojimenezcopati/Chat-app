@@ -1,6 +1,9 @@
+import { useUsernameContext } from "../context/useUsernameContext";
 import "./test.css";
 
-const WelcomePage = ({ setUsername }: { setUsername: (username: string) => void }) => {
+const WelcomePage = () => {
+	const { setUsername } = useUsernameContext();
+
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 		const username = (document.getElementById("username") as HTMLInputElement).value;
