@@ -1,23 +1,29 @@
-import { useUsernameContext } from "../context/useUsernameContext";
+// import { useUsernameContext } from "../context/useUsernameContext";
 import type { MessageInterface } from "../utils/types";
-import Message from "./Message";
+import Message from "../components/Message";
+import ChatIcon from "./ChatIcon";
 
 const Chat = () => {
-	const { username } = useUsernameContext();
+	// const { username } = useUsernameContext();
+
+	const chatMembers: string[] = ["chali", "fran", "insa"];
 
 	const messages: MessageInterface[] = [
 		{
 			content: "Hola este es mi mensaje de texto",
 			username: "fran",
+			createdAt: new Date(),
 		},
 		{
 			username: "chali",
 			content:
 				"asdklfjsdl kadsjfasdjfaskldf jldksf kasdjf lakdsf jalskdfjalsdkfjasdklfjadls kfjadskfjaskl f jals kdfjaldksfjasldkf asdlkf jasdlkfjas lkfasd jsd",
+			createdAt: new Date(),
 		},
 		{
 			content: "Fua para loco",
 			username: "fran",
+			createdAt: new Date(),
 		},
 	];
 
@@ -25,9 +31,9 @@ const Chat = () => {
 		<div className="flex flex-col items-center justify-start gradient-mask bg-gradient-to-t from-[#292C35] via-80% via-[#363742] to-[#25262f] w-2/3 h-full rounded-b-xl">
 			{/* TOP BAR */}
 
-			<div className="w-full flex justify-between items-center">
+			<div className="w-full flex justify-between items-center pt-1">
 				<div className="flex items-center gap-5 ml-3">
-					<img src="sdlakfjdklsjf" />
+					<ChatIcon usernames={chatMembers} />
 					<div className="flex flex-col justify-center items-start ">
 						<span className="text-lg text-slate-100">Los de la nasa</span>
 						<span className="text-xs text-slate-400">Fran, chali, insa, ...</span>
@@ -90,7 +96,7 @@ const Chat = () => {
 						title="Attach image"
 					/>
 				</div>
-				<button className="bg-blue-400 hover:bg-blue-400/80 w-1/12 h-10 rounded-lg text-3xl hover:cursor-pointer flex items-center justify-center">
+				<button className="bg-blue-400 hover:bg-blue-400/80 w-10 h-10 rounded-lg text-3xl hover:cursor-pointer flex items-center justify-center">
 					<img className="h-6 w-6" src="send.svg" />
 				</button>
 			</div>

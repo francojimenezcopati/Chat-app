@@ -1,5 +1,5 @@
-import Chat from "./Chat";
-import ChatList from "./ChatList";
+import Chat from "../components/Chat";
+import ChatList from "../components/ChatList";
 import "./ChatPage.css";
 
 const ChatPage = () => {

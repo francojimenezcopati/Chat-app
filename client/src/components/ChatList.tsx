@@ -1,4 +1,65 @@
+import { useUsernameContext } from "../context/useUsernameContext";
+import type { ChatType, MessageInterface } from "../utils/types";
+import ChatIcon from "./ChatIcon";
+import ChatPreview from "./ChatPreview";
+
 const ChatList = () => {
+	const { username } = useUsernameContext();
+
+	const messages: MessageInterface[] = [
+		{
+			content: "Hola este es mi mensaje de texto",
+			username: "fran",
+			createdAt: new Date(),
+		},
+		{
+			username: "chali",
+			content:
+				"asdklfjsdl kadsjfasdjfaskldf jldksf kasdjf lakdsf jalskdfjalsdkfjasdklfjadls kfjadskfjaskl f jals kdfjaldksfjasldkf asdlkf jasdlkfjas lkfasd jsd",
+			createdAt: new Date(),
+		},
+		{
+			content: "Fua para loco",
+			username: "fran",
+			createdAt: new Date(),
+		},
+	];
+
+	const userChats: ChatType[] = [
+		{
+			name: "Los de la nasa",
+			createdAt: new Date(),
+			createdBy: {
+				createdAt: new Date(),
+				username: "fran",
+			},
+			members: [
+				{
+					user: {
+						createdAt: new Date(),
+						username: "fran",
+					},
+					isAdmin: true,
+				},
+				{
+					user: {
+						createdAt: new Date(),
+						username: "chali",
+					},
+					isAdmin: false,
+				},
+				{
+					user: {
+						createdAt: new Date(),
+						username: "insa",
+					},
+					isAdmin: false,
+				},
+			],
+			messages,
+		},
+	];
+
 	return (
 		<div className="flex flex-col items-center justify-start gap-10  w-1/3 h-full rounded-xl">
 			<div className="w-full flex justify-between items-center">
@@ -10,13 +71,8 @@ const ChatList = () => {
 				/>
 			</div>
 			<div className="flex flex-col items-center justify-start gap-3 h-full w-full overflow-y-auto custom-scroll">
-				<div className="flex justify-start items-center gap-4 rounded-3xl bg-blue-500 w-full h-fit p-4 ">
-					<img src="sdkfjlas" />
-					<div className="flex flex-col justify-center items-start ">
-						<span className="text-lg text-slate-100">Los de la nasa</span>
-						<span className="text-sm text-gray-400">Fua para loco</span>
-					</div>
-				</div>
+				{userChats &&
+					userChats.map((chat, index) => <ChatPreview key={index} chat={chat} />)}
 				<div className="flex justify-start items-center gap-4 rounded-3xl bg-slate-700 w-full h-fit p-4 hover:cursor-pointer">
 					<img src="sdkfjlas" />
 					<div className="flex flex-col justify-center items-start ">

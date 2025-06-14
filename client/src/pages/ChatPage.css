@@ -3,6 +3,10 @@
 	width: 8px;
 }
 
+.sdafjs {
+	text-overflow: ini;
+}
+
 .custom-scroll::-webkit-scrollbar-track {
 	background: transparent;
 }

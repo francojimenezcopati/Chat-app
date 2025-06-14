@@ -3,7 +3,6 @@ import WelcomePage from "./pages/WelcomePage";
 import { Toaster } from "sonner";
 import Footer from "./components/Footer";
 import ChatPage from "./pages/ChatPage";
-import { UsernameProvider } from "./context/UsernameContext";
 import { useUsernameContext } from "./context/useUsernameContext";
 // import NavBar from "./components/NavBar"
 
