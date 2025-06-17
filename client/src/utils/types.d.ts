@@ -9,6 +9,13 @@ export interface UsernameContextType {
 	setUsername: (username: string) => void;
 }
 
+export interface ChatContextType {
+	chats: ChatType[];
+	setChats: (chats: ChatType[]) => void;
+	activeChat: ChatType;
+	setActiveChat: (chat: ChatType) => void;
+}
+
 interface AppUser {
 	id?: number;
 	username: string;
