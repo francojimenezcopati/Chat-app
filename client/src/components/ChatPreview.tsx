@@ -8,7 +8,13 @@ interface Props {
 
 const ChatPreview: React.FC<Props> = ({ chat }) => {
 	const memberUsernames = chat.members.map((member) => member.user.username);
-	const lastMessage = chat.messages[chat.messages.length - 1].content;
+
+	let lastMessage;
+	if (chat.messages.length > 0) {
+		lastMessage = chat.messages[chat.messages.length - 1].content;
+	} else {
+		lastMessage = "Start chatting!";
+	}
 
 	const { activeChat, setActiveChat } = useChatContext();
 

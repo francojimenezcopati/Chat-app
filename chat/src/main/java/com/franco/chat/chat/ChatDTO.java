@@ -6,6 +6,6 @@ import com.franco.chat.message.MessageDTO;
 import java.time.LocalDate;
 import java.util.List;
 
-public record ChatDTO(Long id, AppUserDTO createdBy, LocalDate createdAt, List<ChatMembershipDTO> members,
+public record ChatDTO(Long id, String name, AppUserDTO createdBy, LocalDate createdAt, List<ChatMembershipDTO> members,
 					  List<MessageDTO> messages) {
 }

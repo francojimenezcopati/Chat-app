@@ -29,6 +29,7 @@ public class Chat {
 	)
 	@Id
 	private Long id;
+	private String name;
 	private LocalDate createdAt;
 	@ManyToOne
 	@JoinColumn(name = "created_by_user_id")
@@ -52,7 +53,8 @@ public class Chat {
 //	)
 //	private List<AppUser> participants;
 
-	public Chat(AppUser creator) {
+	public Chat(String name, AppUser creator) {
+		this.name = name;
 		this.createdBy = creator;
 		this.messages = new ArrayList<>();
 		this.createdAt = LocalDate.now();

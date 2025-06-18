@@ -1,12 +1,20 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Chat from "../components/Chat";
 import ChatList from "../components/ChatList";
 import type { ChatType, MessageInterface } from "../utils/types";
 import "./ChatPage.css";
 import { useChatContext } from "../context/useChatContext";
 
-const ChatPage = () => {
-	const { chats, activeChat } = useChatContext();
+interface Props {
+	username: string;
+}
+
+const ChatPage: React.FC<Props> = ({ username }) => {
+	const { chats, activeChat, initializeUserChats } = useChatContext();
+
+	useEffect(() => {
+		initializeUserChats({ username });
+	}, []);
 
 	return (
 		<div className="h-full w-full flex justify-center items-center">

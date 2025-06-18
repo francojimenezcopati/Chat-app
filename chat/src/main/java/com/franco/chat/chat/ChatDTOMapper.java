@@ -25,8 +25,13 @@ public class ChatDTOMapper implements Function<Chat, ChatDTO> {
 		List<ChatMembershipDTO> membersDTO = chatMemberships.stream().map(this.chatMembershipDTOMapper).toList();
 		List<MessageDTO> messagesDTO = chat.getMessages().stream().map(this.messageDTOMapper).toList();
 
-		return new ChatDTO(chat.getId(), this.appUserDTOMapper.apply(chat.getCreatedBy()), chat.getCreatedAt(),
+		return new ChatDTO(
+				chat.getId(),
+				chat.getName(),
+				this.appUserDTOMapper.apply(chat.getCreatedBy()),
+				chat.getCreatedAt(),
 				membersDTO,
-				messagesDTO);
+				messagesDTO
+		);
 	}
 }

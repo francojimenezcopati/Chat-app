@@ -13,7 +13,7 @@ function App() {
 		<>
 			<Toaster richColors />
 			<div className=" h-screen w-screen">
-				{username == "" ? <WelcomePage /> : <ChatPage />}
+				{username == "" ? <WelcomePage /> : <ChatPage username={username} />}
 			</div>
 			<Footer />
 		</>

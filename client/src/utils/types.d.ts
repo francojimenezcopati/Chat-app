@@ -12,8 +12,9 @@ export interface UsernameContextType {
 export interface ChatContextType {
 	chats: ChatType[];
 	setChats: (chats: ChatType[]) => void;
-	activeChat: ChatType;
+	activeChat: ChatType | null;
 	setActiveChat: (chat: ChatType) => void;
+	initializeUserChats: ({ username }: { username: string }) => Promise<void>;
 }
 
 interface AppUser {
@@ -34,4 +35,16 @@ export interface ChatType {
 	createdAt: Date;
 	members: ChatMembership[];
 	messages: MessageInterface[];
+}
+
+export interface ChatRequest {
+	creator: string;
+	membersNames: string[];
+}
+
+export interface ApiResponse<T = unknown> {
+	success: boolean;
+	message: string;
+	content: T;
+	status: HttpStatusString;
 }

@@ -1,14 +1,19 @@
+import { createUser } from "../api/use.api";
 import { useUsernameContext } from "../context/useUsernameContext";
 import "./test.css";
 
 const WelcomePage = () => {
 	const { setUsername } = useUsernameContext();
 
-	const handleSubmit = (e: React.FormEvent) => {
+	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		const username = (document.getElementById("username") as HTMLInputElement).value;
 		console.log(username); // Datos del formulario
-		setUsername(username);
+
+		const success = await createUser({ username });
+		if (success) {
+			setUsername(username);
+		}
 	};
 
 	return (

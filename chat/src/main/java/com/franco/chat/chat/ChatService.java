@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,7 +27,7 @@ public class ChatService {
 		return new ResponseDTO(true, "", chatDTOS, HttpStatus.OK);
 	}
 
-	public ResponseDTO createChat(String creator, List<String> memberNames) {
+	public ResponseDTO createChat(String name, String creator, List<String> memberNames) {
 		Optional<AppUser> optionalCreatedBy = this.appUserRepository.findByUsernameIgnoreCase(creator);
 		if (optionalCreatedBy.isPresent()) {
 			AppUser createdBy = optionalCreatedBy.get();
@@ -37,7 +39,7 @@ public class ChatService {
 
 				List<AppUser> members = optionalMembers.stream().map(Optional::orElseThrow).toList();
 
-				Chat chat = new Chat(createdBy);
+				Chat chat = new Chat(name, createdBy);
 
 				Chat savedChat = this.chatRepository.save(chat);
 
@@ -156,9 +158,12 @@ public class ChatService {
 
 				List<ChatMembership> userMemberships = this.chatMembershipRepository.findAllByAppUser(appUser);
 
-				List<Chat> userChats = userMemberships.stream().map(ChatMembership::getChat).toList();
+				List<ChatDTO> userChatDTOs = new ArrayList<>();
+				if (!userMemberships.isEmpty()) {
+					List<Chat> userChats = userMemberships.stream().map(ChatMembership::getChat).toList();
 
-				List<ChatDTO> userChatDTOs = userChats.stream().map(this.chatDTOMapper).toList();
+					userChatDTOs = userChats.stream().map(this.chatDTOMapper).toList();
+				}
 
 				return new ResponseDTO(true, "", userChatDTOs, HttpStatus.OK);
 			} else {

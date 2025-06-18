@@ -28,7 +28,7 @@ public class ChatController {
 
 	@PostMapping
 	public ResponseEntity<ResponseDTO> createChat(@RequestBody ChatRequest request) {
-		ResponseDTO responseDTO = this.chatService.createChat(request.creator(), request.membersNames());
+		ResponseDTO responseDTO = this.chatService.createChat(request.name(), request.creator(), request.membersNames());
 
 		return new ResponseEntity<>(responseDTO, responseDTO.status());
 	}
