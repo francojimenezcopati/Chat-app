@@ -3,6 +3,8 @@ import type { ChatType, MessageInterface } from "../utils/types";
 import Message from "../components/Message";
 import ChatIcon from "./ChatIcon";
 
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+
 interface Props {
 	chat: ChatType | null;
 }
@@ -30,21 +32,39 @@ const Chat: React.FC<Props> = ({ chat }) => {
 							</div>
 						</div>
 						<div className="flex items-center justify-end gap-3 mr-3">
-							<img
-								className="w-6 h-6 hover:cursor-pointer"
-								src="edit-chat.svg"
-								title="Edit chat"
-							/>
-							<img
-								className="w-6 h-6 hover:cursor-pointer"
-								src="add-members.svg"
-								title="Add members"
-							/>
-							<img
-								className="w-6 h-6 hover:cursor-pointer"
-								src="exit-chat.svg"
-								title="Exit chat"
-							/>
+							<Tooltip>
+								<TooltipTrigger>
+									<img
+										className="w-6 h-6 hover:cursor-pointer"
+										src="edit-chat.svg"
+									/>
+								</TooltipTrigger>
+								<TooltipContent>
+									<p>Edit chat</p>
+								</TooltipContent>
+							</Tooltip>
+							<Tooltip>
+								<TooltipTrigger>
+									<img
+										className="w-6 h-6 hover:cursor-pointer"
+										src="add-members.svg"
+									/>
+								</TooltipTrigger>
+								<TooltipContent>
+									<p>Add members</p>
+								</TooltipContent>
+							</Tooltip>
+							<Tooltip>
+								<TooltipTrigger>
+									<img
+										className="w-6 h-6 hover:cursor-pointer"
+										src="exit-chat.svg"
+									/>
+								</TooltipTrigger>
+								<TooltipContent>
+									<p>Exit chat</p>
+								</TooltipContent>
+							</Tooltip>
 						</div>
 					</div>
 
@@ -76,11 +96,17 @@ const Chat: React.FC<Props> = ({ chat }) => {
 								placeholder="Message..."
 								maxLength={200}
 							/>
-							<img
-								className="w-6 h-6 hover:cursor-pointer"
-								src="attach-image.svg"
-								title="Attach image"
-							/>
+							<Tooltip>
+								<TooltipTrigger>
+									<img
+										className="w-6 h-6 hover:cursor-pointer"
+										src="attach-image.svg"
+									/>
+								</TooltipTrigger>
+								<TooltipContent>
+									<p>Attach image</p>
+								</TooltipContent>
+							</Tooltip>
 						</div>
 						<button className="bg-blue-400 hover:bg-blue-400/80 w-10 h-10 rounded-lg text-3xl hover:cursor-pointer flex items-center justify-center">
 							<img className="h-6 w-6" src="send.svg" />

@@ -12,7 +12,7 @@ const WelcomePage = () => {
 
 		const success = await createUser({ username });
 		if (success) {
-			setUsername(username);
+			setUsername(username.toLowerCase());
 		}
 	};
 

@@ -10,10 +10,10 @@ const Message = ({ username, content, image }: MessageProps) => {
 	const { username: myUsername } = useUsernameContext();
 	return (
 		<div className="">
-			{myUsername == username ? (
+			{myUsername == username.toLowerCase() ? (
 				<div className="flex justify-end w-full h-fit">
-					<div className="bg-blue-700 text-white flex flex-col justify-start p-2 rounded-2xl rounded-br-none">
-						<p className="">{content}</p>
+					<div className="bg-blue-700 text-white text-center flex justify-center items-center p-2 rounded-2xl rounded-br-none">
+						<p className="text-center">{content}</p>
 					</div>
 				</div>
 			) : (
@@ -27,8 +27,8 @@ const Message = ({ username, content, image }: MessageProps) => {
 					/>
 					<div className="flex flex-col justify-start">
 						<span className="text-lg text-slate-300 translate-x-3">{username}</span>
-						<div className="bg-gray-700 text-white flex items-center justify-start  p-2 rounded-2xl ">
-							<p className="">{content}</p>
+						<div className="bg-gray-700 text-white flex items-center justify-center  p-2 rounded-2xl ">
+							<p className="text-center w-full">{content}</p>
 						</div>
 					</div>
 				</div>

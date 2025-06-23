@@ -22,6 +22,7 @@ export const createUser = async ({ username }: { username: string }): Promise<bo
 		return true;
 	} catch (e) {
 		console.error((e as Error).message);
+		toast.error("Something went wrong!");
 		return false;
 	}
 };
@@ -45,7 +46,8 @@ export const createChat = async ({ chat }: { chat: ChatRequest }): Promise<ChatT
 
 		return res.content;
 	} catch (e) {
-		toast.error((e as Error).message);
+		console.error((e as Error).message);
+		toast.error("Something went wrong!");
 		return null;
 	}
 };
@@ -73,6 +75,7 @@ export const getUserChats = async ({
 		}
 	} catch (e) {
 		console.error((e as Error).message);
+		toast.error("Something went wrong!");
 		return null;
 	}
 };
