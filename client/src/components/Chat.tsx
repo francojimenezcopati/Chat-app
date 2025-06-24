@@ -1,15 +1,21 @@
 // import { useUsernameContext } from "../context/useUsernameContext";
-import type { ChatType, MessageInterface } from "../utils/types";
+import type { ChatType, MessageInterface, MessageRequest } from "../utils/types";
 import Message from "../components/Message";
 import ChatIcon from "./ChatIcon";
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { sendMessage } from "@/api/use.api";
+import { useUsernameContext } from "@/context/useUsernameContext";
+import { useEffect, useRef, useState } from "react";
 
 interface Props {
 	chat: ChatType | null;
 }
 
 const Chat: React.FC<Props> = ({ chat }) => {
+	const { username } = useUsernameContext();
+	const [messages, setMessages] = useState<MessageInterface[]>([]);
+
 	const memberUsernames = chat?.members.map((member) => member.user.username);
 	const formatedMembers = memberUsernames?.reduce((allUsernames, username, index) => {
 		if (index < 6) {
@@ -18,6 +24,35 @@ const Chat: React.FC<Props> = ({ chat }) => {
 			return allUsernames + "...";
 		}
 	});
+
+	const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+	useEffect(() => {
+		if (chat?.messages) {
+			setMessages(chat.messages);
+		}
+	}, [chat?.messages]);
+
+	useEffect(() => {
+		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+	}, [messages]);
+
+	const onSendMessage = async () => {
+		const messageElement = document.getElementById("message") as HTMLInputElement;
+		const messageContent = messageElement.value;
+		messageElement.value = "";
+
+		const message: MessageRequest = {
+			username,
+			content: messageContent,
+			chatId: chat?.id!,
+		};
+
+		const messageDTO = await sendMessage({ message });
+		if (messageDTO != null) {
+			setMessages((prevState) => [...prevState!, messageDTO]);
+		}
+	};
 
 	return (
 		<div className="relative flex flex-col items-center justify-start gradient-mask bg-gradient-to-t from-[#292C35] via-80% via-[#363742] to-[#25262f] w-2/3 h-full rounded-b-xl">
@@ -69,14 +104,15 @@ const Chat: React.FC<Props> = ({ chat }) => {
 					</div>
 
 					<div className="flex flex-col w-full h-full p-5 gap-5 overflow-y-auto  custom-scroll">
-						{chat.messages &&
-							chat.messages.map((message, index) => (
+						{messages !== undefined &&
+							messages.map((message, index) => (
 								<Message
 									key={index}
 									username={message.username}
 									content={message.content}
 								/>
 							))}
+						<div ref={messagesEndRef} />
 					</div>
 
 					<div className="flex items-center w-full h-fit px-7 pb-6 gap-2">
@@ -92,6 +128,7 @@ const Chat: React.FC<Props> = ({ chat }) => {
 						>
 							<input
 								className="flex-1 w-full p-1 rounded focus:outline-none text-lg text-wrap h-fit "
+								id="message"
 								type="text"
 								placeholder="Message..."
 								maxLength={200}
@@ -108,7 +145,10 @@ const Chat: React.FC<Props> = ({ chat }) => {
 								</TooltipContent>
 							</Tooltip>
 						</div>
-						<button className="bg-blue-400 hover:bg-blue-400/80 w-10 h-10 rounded-lg text-3xl hover:cursor-pointer flex items-center justify-center">
+						<button
+							onClick={() => onSendMessage()}
+							className="bg-blue-400 hover:bg-blue-400/80 w-10 h-10 rounded-lg text-3xl hover:cursor-pointer flex items-center justify-center"
+						>
 							<img className="h-6 w-6" src="send.svg" />
 						</button>
 					</div>

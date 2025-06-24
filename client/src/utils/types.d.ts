@@ -4,6 +4,12 @@ export interface MessageInterface {
 	createdAt: Date;
 }
 
+export interface MessageRequest {
+	content: string;
+	username: string;
+	chatId: number;
+}
+
 export interface UsernameContextType {
 	username: string;
 	setUsername: (username: string) => void;
@@ -38,6 +44,7 @@ export interface ChatType {
 }
 
 export interface ChatRequest {
+	name: string;
 	creator: string;
 	membersNames: string[];
 }

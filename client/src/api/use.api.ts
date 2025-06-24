@@ -1,6 +1,13 @@
 import { toast } from "sonner";
 import { API_URLS, ContentTypeHeader, METHODS } from "../utils/consts";
-import type { ChatType, ChatRequest, ApiResponse, AppUser } from "../utils/types";
+import type {
+	ChatType,
+	ChatRequest,
+	ApiResponse,
+	AppUser,
+	MessageRequest,
+	MessageInterface,
+} from "../utils/types";
 
 export const createUser = async ({ username }: { username: string }): Promise<boolean> => {
 	try {
@@ -41,7 +48,8 @@ export const createChat = async ({ chat }: { chat: ChatRequest }): Promise<ChatT
 		if (res.success && res.content) {
 			toast.success(res.message);
 		} else {
-			toast.error(res.message);
+			console.error(res.message);
+			toast.error("Something went wrong!");
 		}
 
 		return res.content;
@@ -73,6 +81,54 @@ export const getUserChats = async ({
 			console.error(res.message);
 			return null;
 		}
+	} catch (e) {
+		console.error((e as Error).message);
+		toast.error("Something went wrong!");
+		return null;
+	}
+};
+
+export const getAllUsers = async (): Promise<AppUser[] | null> => {
+	try {
+		const rawRes = await fetch(API_URLS.USER);
+		const res: ApiResponse<AppUser[]> = await rawRes.json();
+
+		if (res.success) {
+			return res.content;
+		} else {
+			console.error(res.message);
+			return null;
+		}
+	} catch (e) {
+		console.error((e as Error).message);
+		toast.error("Something went wrong!");
+		return null;
+	}
+};
+
+export const sendMessage = async ({
+	message,
+}: {
+	message: MessageRequest;
+}): Promise<MessageInterface | null> => {
+	try {
+		const rawRes = await fetch(API_URLS.MESSAGE, {
+			method: METHODS.POST,
+			headers: {
+				...ContentTypeHeader,
+			},
+			body: JSON.stringify(message),
+		});
+		const res: ApiResponse<MessageInterface | null> = await rawRes.json();
+
+		if (res.success && res.content) {
+			toast.success(res.message);
+		} else {
+			console.error(res.message);
+			toast.error("Something went wrong!");
+		}
+
+		return res.content;
 	} catch (e) {
 		console.error((e as Error).message);
 		toast.error("Something went wrong!");
