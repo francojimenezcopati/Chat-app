@@ -49,6 +49,11 @@ export interface ChatRequest {
 	membersNames: string[];
 }
 
+export interface AddMembersRequest {
+	usernames: string[];
+	chatId: number;
+}
+
 export interface ApiResponse<T = unknown> {
 	success: boolean;
 	message: string;

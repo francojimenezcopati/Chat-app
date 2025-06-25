@@ -44,7 +44,7 @@ public class ChatController {
 	@PutMapping(path = "{chatId}/give-admin")
 	public ResponseEntity<ResponseDTO> giveAdminToUsers(
 			@PathVariable("chatId") Long chatId, @RequestBody GiveAdminRequest request) {
-		ResponseDTO responseDTO = this.chatService.giveAdminToUsers(chatId, request.userIds());
+		ResponseDTO responseDTO = this.chatService.giveAdminToUsers(chatId, request.usernames());
 
 		return new ResponseEntity<>(responseDTO, responseDTO.status());
 	}

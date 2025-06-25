@@ -7,6 +7,7 @@ import type {
 	AppUser,
 	MessageRequest,
 	MessageInterface,
+	AddMembersRequest,
 } from "../utils/types";
 
 export const createUser = async ({ username }: { username: string }): Promise<boolean> => {
@@ -133,6 +134,35 @@ export const sendMessage = async ({
 		console.error((e as Error).message);
 		toast.error("Something went wrong!");
 		return null;
+	}
+};
+
+export const addUsersToChat = async ({
+	usernames,
+	chatId,
+}: AddMembersRequest): Promise<boolean> => {
+	try {
+		const rawRes = await fetch(API_URLS.CHAT + `/${chatId}/add-users`, {
+			method: METHODS.PUT,
+			headers: {
+				...ContentTypeHeader,
+			},
+			body: JSON.stringify({ usernames }),
+		});
+		const res: ApiResponse<null> = await rawRes.json();
+
+		if (res.success) {
+			toast.success(res.message);
+		} else {
+			console.error(res.message);
+			toast.error("Something went wrong!");
+		}
+
+		return res.success;
+	} catch (e) {
+		console.error((e as Error).message);
+		toast.error("Something went wrong!");
+		return false;
 	}
 };
 

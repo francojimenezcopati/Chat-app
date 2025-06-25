@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "chats_memberships")
+@Table(name = "chats_memberships",uniqueConstraints = @UniqueConstraint(columnNames = {"app_user_id", "chat_id"}))
 public class ChatMembership {
 	@SequenceGenerator(
 			name = "chat_membership_sequence_generator",

@@ -11,7 +11,7 @@ function App() {
 
 	return (
 		<>
-			<Toaster richColors />
+			<Toaster position="bottom-left" richColors />
 			<div className=" h-screen w-screen">
 				{username == "" ? <WelcomePage /> : <ChatPage username={username} />}
 			</div>

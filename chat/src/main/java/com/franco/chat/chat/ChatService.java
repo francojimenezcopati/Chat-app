@@ -81,7 +81,37 @@ public class ChatService {
 
 				this.chatMembershipRepository.saveAll(newChatMemberships);
 
-				return new ResponseDTO(true, "Users successfully added", null, HttpStatus.OK);
+				return new ResponseDTO(true, "User/s successfully added", null, HttpStatus.OK);
+			} else {
+				return new ResponseDTO(false, "Chat not found", null, HttpStatus.NOT_FOUND);
+			}
+		} catch (Exception e) {
+			return new ResponseDTO(false, "One or more of the users not found", null, HttpStatus.NOT_FOUND);
+		}
+	}
+
+
+	public ResponseDTO giveAdminToUsers(Long chatId, List<String> usernames) {
+		Optional<Chat> optionalChat = this.chatRepository.findById(chatId);
+		try {
+			if (optionalChat.isPresent()) {
+
+				List<AppUser> usersToBeAdmin = usernames.stream()
+						.map(this.appUserRepository::findByUsernameIgnoreCase)
+						.map(Optional::orElseThrow)
+						.toList();
+				List<ChatMembership> chatMemberships = usersToBeAdmin.stream()
+						.map(appUser -> this.chatMembershipRepository.findByAppUserIdAndChatId(appUser.getId(), chatId))
+						.map(Optional::orElseThrow)
+						.toList();
+
+				List<ChatMembership> newAdminsMemberships = chatMemberships.stream()
+						.peek(membership -> membership.setAdmin(true))
+						.toList();
+
+				this.chatMembershipRepository.saveAll(newAdminsMemberships);
+
+				return new ResponseDTO(true, "Users successfully converted to admins", null, HttpStatus.OK);
 			} else {
 				return new ResponseDTO(false, "Chat not found", null, HttpStatus.NOT_FOUND);
 			}
@@ -123,30 +153,6 @@ public class ChatService {
 					null,
 					HttpStatus.INTERNAL_SERVER_ERROR
 			);
-		}
-	}
-
-	public ResponseDTO giveAdminToUsers(Long chatId, List<Long> userIds) {
-		Optional<Chat> optionalChat = this.chatRepository.findById(chatId);
-		try {
-			if (optionalChat.isPresent()) {
-				List<ChatMembership> chatMemberships = userIds.stream()
-						.map(id -> this.chatMembershipRepository.findByAppUserIdAndChatId(id, chatId))
-						.map(Optional::orElseThrow)
-						.toList();
-
-				List<ChatMembership> newAdminsMemberships = chatMemberships.stream()
-						.peek(membership -> membership.setAdmin(true))
-						.toList();
-
-				this.chatMembershipRepository.saveAll(newAdminsMemberships);
-
-				return new ResponseDTO(true, "Users successfully converted to admins", null, HttpStatus.OK);
-			} else {
-				return new ResponseDTO(false, "Chat not found", null, HttpStatus.NOT_FOUND);
-			}
-		} catch (Exception e) {
-			return new ResponseDTO(false, "One or more of the users not found", null, HttpStatus.NOT_FOUND);
 		}
 	}
 
