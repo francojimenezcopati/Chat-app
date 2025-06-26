@@ -9,10 +9,17 @@ interface Props {
 
 export const ChatProvider: React.FC<Props> = ({ children }) => {
 	const initializeUserChats = async ({ username }: { username: string }) => {
+		console.log("initializing...");
 		const chats = await getUserChats({ username });
 		if (chats && chats.length > 0) {
 			setChats(chats);
-			setActiveChat(chats[0]);
+
+			const previousActiveChatList = chats.filter((chat) => chat.id! === activeChat?.id!);
+			if (previousActiveChatList.length === 1) {
+				setActiveChat(previousActiveChatList[0]);
+			} else {
+				setActiveChat(null);
+			}
 		} else {
 			setChats([]);
 		}

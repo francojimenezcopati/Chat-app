@@ -4,16 +4,20 @@ import ChatList from "../components/ChatList";
 import type { ChatType, MessageInterface } from "../utils/types";
 import "./ChatPage.css";
 import { useChatContext } from "../context/useChatContext";
+import { useSpinner } from "@/context/useSpinner";
 
 interface Props {
 	username: string;
 }
 
 const ChatPage: React.FC<Props> = ({ username }) => {
-	const { chats, activeChat, initializeUserChats } = useChatContext();
+	const { initializeUserChats, activeChat, chats } = useChatContext();
+	const { showSpinner } = useSpinner();
 
 	useEffect(() => {
+		showSpinner(true);
 		initializeUserChats({ username });
+		showSpinner(false);
 	}, []);
 
 	return (

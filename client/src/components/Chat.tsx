@@ -15,23 +15,43 @@ import MultipleSelector, {
 import { toast } from "sonner";
 import Modal from "./Modal";
 import { useChatContext } from "@/context/useChatContext";
+import { useSpinner } from "@/context/useSpinner";
 
 interface Props {
 	chat: ChatType | null;
 }
 
 const Chat: React.FC<Props> = ({ chat }) => {
+	const { initializeUserChats } = useChatContext();
 	const { username } = useUsernameContext();
-	const [messages, setMessages] = useState<MessageInterface[]>([]);
-	const [formattedMemberUsernames, setFormattedMemberUsernames] = useState<string>("");
-
-	const [memberUsernames, setMemberUsernames] = useState<string[]>([]);
+	const { showSpinner } = useSpinner();
 
 	const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
 	const [showMembersModal, setShowMembersModal] = useState(false);
 	const [options, setOptions] = useState<Option[]>([]);
 	const membersRef = useRef<MultipleSelectorRef>(null);
+
+	const [messages, setMessages] = useState<MessageInterface[] | undefined>(chat?.messages);
+
+	const memberUsernames = chat?.members.map((member) => member.user.username);
+	const formattedMemberUsernames = memberUsernames?.reduce((allUsernames, username, index) => {
+		if (index < 6) {
+			return allUsernames + ", " + username;
+		} else {
+			return allUsernames + ", ...";
+		}
+	});
+
+	useEffect(() => {
+		if (chat) {
+			setMessages(chat.messages);
+		}
+	}, [chat]);
+
+	useEffect(() => {
+		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+	}, [messages]);
 
 	const handleAddMembersClick = () => {
 		setShowMembersModal(true);
@@ -62,58 +82,20 @@ const Chat: React.FC<Props> = ({ chat }) => {
 		);
 
 		if (usernamesSelected !== undefined && usernamesSelected.length > 0) {
+			showSpinner(true);
 			const success = await addUsersToChat({
 				chatId: chat!.id!,
 				usernames: usernamesSelected,
 			});
+			showSpinner(false);
 			if (success) {
-				console.log(memberUsernames);
-
-				const newUsernames = [...memberUsernames, ...usernamesSelected];
-				setMemberUsernames(newUsernames);
-
-				const newFormattedUsernames = newUsernames.reduce(
-					(allUsernames, username, index) => {
-						if (index < 6) {
-							return allUsernames + ", " + username;
-						} else {
-							return allUsernames + ", ...";
-						}
-					},
-				);
-				setFormattedMemberUsernames(newFormattedUsernames);
+				initializeUserChats({ username });
 			}
 		} else {
 			toast.error("Something went wrong!");
 		}
 		setShowMembersModal(false);
 	};
-
-	useEffect(() => {
-		if (chat) {
-			if (chat.messages) {
-				setMessages(chat.messages);
-			}
-
-			const usernames = chat.members.map((member) => member.user.username);
-
-			setMemberUsernames(usernames);
-
-			setFormattedMemberUsernames(
-				usernames.reduce((allUsernames, username, index) => {
-					if (index < 6) {
-						return allUsernames + ", " + username;
-					} else {
-						return allUsernames + ", ...";
-					}
-				}),
-			);
-		}
-	}, [chat]);
-
-	useEffect(() => {
-		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-	}, [messages]);
 
 	const onSendMessage = async () => {
 		const messageElement = document.getElementById("message") as HTMLInputElement;
@@ -126,9 +108,13 @@ const Chat: React.FC<Props> = ({ chat }) => {
 			chatId: chat?.id!,
 		};
 
+		showSpinner(true);
 		const messageDTO = await sendMessage({ message });
+		showSpinner(false);
 		if (messageDTO != null) {
 			setMessages((prevState) => [...prevState!, messageDTO]);
+			chat?.messages.push(messageDTO);
+			// updateLocally();
 		}
 	};
 

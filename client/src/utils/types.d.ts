@@ -17,10 +17,14 @@ export interface UsernameContextType {
 
 export interface ChatContextType {
 	chats: ChatType[];
-	setChats: (chats: ChatType[]) => void;
+	setChats: React.Dispatch<React.SetStateAction<ChatType[]>>;
 	activeChat: ChatType | null;
-	setActiveChat: (chat: ChatType) => void;
+	setActiveChat: React.Dispatch<React.SetStateAction<ChatType | null>>;
 	initializeUserChats: ({ username }: { username: string }) => Promise<void>;
+}
+
+export interface SpinnerContextType {
+	showSpinner: (show: boolean) => void;
 }
 
 interface AppUser {

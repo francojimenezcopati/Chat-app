@@ -13,12 +13,6 @@ import { toast } from "sonner";
 import { useChatContext } from "@/context/useChatContext";
 import Modal from "./Modal";
 
-// const OPTIONS: Option[] = [
-// 	{ label: "Fran", value: "fran" },
-// 	{ label: "pepito", value: "Pepito", disable: true },
-// 	{ label: "belal", value: "Belal" },
-// ];
-
 interface Props {
 	chats: ChatType[];
 }
@@ -26,6 +20,8 @@ interface Props {
 const ChatList: React.FC<Props> = ({ chats }) => {
 	const { username } = useUsernameContext();
 	const { initializeUserChats } = useChatContext();
+
+	console.log("Chat lisssttttt");
 
 	const [showModal, setShowModal] = useState(false);
 	const [options, setOptions] = useState<Option[]>([]);
@@ -94,7 +90,7 @@ const ChatList: React.FC<Props> = ({ chats }) => {
 			</div>
 			<div className="flex flex-col items-center justify-start gap-3 h-full w-full overflow-y-auto custom-scroll">
 				{chats.length > 0 ? (
-					chats.map((chat, index) => <ChatPreview key={index} chat={chat} />)
+					chats.map((chat) => <ChatPreview key={chat.id!} chat={chat} />)
 				) : (
 					<div className="flex items-center justify-center text-gray-400 text-center">
 						Create a new chat to begin!
