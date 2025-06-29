@@ -21,8 +21,6 @@ const ChatList: React.FC<Props> = ({ chats }) => {
 	const { username } = useUsernameContext();
 	const { initializeUserChats } = useChatContext();
 
-	console.log("Chat lisssttttt");
-
 	const [showModal, setShowModal] = useState(false);
 	const [options, setOptions] = useState<Option[]>([]);
 	const membersRef = useRef<MultipleSelectorRef>(null);

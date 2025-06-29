@@ -14,10 +14,14 @@ const ChatPage: React.FC<Props> = ({ username }) => {
 	const { initializeUserChats, activeChat, chats } = useChatContext();
 	const { showSpinner } = useSpinner();
 
-	useEffect(() => {
+	const asyncUseEffectFn = async () => {
 		showSpinner(true);
-		initializeUserChats({ username });
+		await initializeUserChats({ username });
 		showSpinner(false);
+	};
+
+	useEffect(() => {
+		asyncUseEffectFn();
 	}, []);
 
 	return (

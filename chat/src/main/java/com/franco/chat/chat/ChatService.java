@@ -44,13 +44,13 @@ public class ChatService {
 				Chat savedChat = this.chatRepository.save(chat);
 
 				List<ChatMembership> chatMemberships = members.stream()
-						.map(p -> new ChatMembership(p, savedChat, false))
+						.map(member -> new ChatMembership(member, savedChat, false))
 						.toList();
 
 				ChatMembership adminMembership = new ChatMembership(createdBy, savedChat, true);
 
-				this.chatMembershipRepository.saveAll(chatMemberships);
 				this.chatMembershipRepository.save(adminMembership);
+				this.chatMembershipRepository.saveAll(chatMemberships);
 
 				ChatDTO chatDTO = this.chatDTOMapper.apply(savedChat);
 
