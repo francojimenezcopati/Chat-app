@@ -7,6 +7,7 @@ interface Props {
 }
 
 const ChatPreview: React.FC<Props> = ({ chat }) => {
+	chat.members.sort((left, right) => (left.isAdmin && !right.isAdmin ? -1 : 1));
 	const memberUsernames = chat.members.map((member) => member.user.username);
 
 	let lastMessage;

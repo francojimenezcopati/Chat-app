@@ -31,6 +31,7 @@ const Chat: React.FC<Props> = ({ chat }) => {
 
 	const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
+	const [showManageMembersModal, setShowManageMembersModal] = useState(false);
 	const [showMembersModal, setShowMembersModal] = useState(false);
 	const [showEditChatModal, setShowEditChatModal] = useState(false);
 
@@ -43,22 +44,27 @@ const Chat: React.FC<Props> = ({ chat }) => {
 	const formattedMemberUsernames = memberUsernames?.reduce((allUsernames, username, index) => {
 		if (index < 6) {
 			return allUsernames + ", " + username;
-		} else {
+		} else if (index === 6) {
 			return allUsernames + ", ...";
+		} else {
+			return allUsernames;
 		}
 	});
 
 	useEffect(() => {
 		if (chat) {
+			chat.members.sort((left, right) => (left.isAdmin && !right.isAdmin ? -1 : 1));
+
 			setMessages(chat.messages);
 		}
+		console.log(chat);
 	}, [chat]);
 
 	useEffect(() => {
 		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
 	}, [messages]);
 
-	const handleEditChatClick = () => {
+	const handleManageMembersClick = () => {
 		let options: Option[] = [];
 		memberUsernames?.forEach((memberUsername) => {
 			options.push({
@@ -70,6 +76,10 @@ const Chat: React.FC<Props> = ({ chat }) => {
 
 		setOptions(options);
 
+		setShowManageMembersModal(true);
+	};
+
+	const handleEditChatNameClick = () => {
 		setShowEditChatModal(true);
 	};
 
@@ -95,7 +105,7 @@ const Chat: React.FC<Props> = ({ chat }) => {
 		});
 	};
 
-	const handleConfirmEditChat = async (e: React.FormEvent) => {
+	const handleConfirmEditChatName = async (e: React.FormEvent) => {
 		e.preventDefault();
 		const newChatName = (document.getElementById("chatName") as HTMLInputElement).value;
 		console.log(newChatName);
@@ -149,18 +159,10 @@ const Chat: React.FC<Props> = ({ chat }) => {
 		<div className="relative flex flex-col items-center justify-start bg-gradient-to-t from-[#292C35] via-80% via-[#363742] to-[#25262f] w-2/3 h-full rounded-b-xl">
 			{chat != null ? (
 				<>
-					<div className="bg-red-500 absolute w-full h-full flex items-center justify-center z-20">
-						<div className="bg-gray-800 rounded-xl border w-2/3 h-2/3 flex flex-col items-center justify-center p-5">
-							{chat.members.map((membership, index) => (
-								<ListItem chatMembership={membership} key={index} />
-							))}
-						</div>
-					</div>
-
 					{/* TOP BAR */}
 
 					<div className="w-full flex justify-between items-center pt-1">
-						<div className="flex items-center gap-5 ml-3">
+						<div className="flex items-center gap-5 ml-3 ">
 							<ChatIcon usernames={memberUsernames!} />
 							<div className="flex flex-col justify-center items-start ">
 								<span className="text-lg text-slate-100">{chat.name}</span>
@@ -169,21 +171,29 @@ const Chat: React.FC<Props> = ({ chat }) => {
 								</span>
 							</div>
 						</div>
-						<div className="flex items-center justify-end gap-3 mr-3">
-							<ConfirmModal onConfirm={() => console.log("clicked")}>
-								<button>Open</button>
-							</ConfirmModal>
-
+						<div className="flex items-center justify-end gap-3 mr-3 min-w-[140px]">
 							<Tooltip>
 								<TooltipTrigger>
 									<img
 										className="w-6 h-6 hover:cursor-pointer"
 										src="edit-chat.svg"
-										onClick={handleEditChatClick}
+										onClick={handleEditChatNameClick}
 									/>
 								</TooltipTrigger>
 								<TooltipContent>
-									<p>Edit chat</p>
+									<p>Edit chat name</p>
+								</TooltipContent>
+							</Tooltip>
+							<Tooltip>
+								<TooltipTrigger>
+									<img
+										className="w-6 h-6 hover:cursor-pointer"
+										src="manage-members.svg"
+										onClick={handleManageMembersClick}
+									/>
+								</TooltipTrigger>
+								<TooltipContent>
+									<p>Manage members</p>
 								</TooltipContent>
 							</Tooltip>
 							<Tooltip>
@@ -303,12 +313,12 @@ const Chat: React.FC<Props> = ({ chat }) => {
 
 			{showEditChatModal && (
 				<Modal
-					modalTitle="Edit chat"
-					handleConfirmModal={handleConfirmEditChat}
+					modalTitle="Edit chat name"
+					handleConfirmModal={handleConfirmEditChatName}
 					setShowModal={setShowEditChatModal}
 				>
 					<>
-						<div className="flex flex-col items-start justify-between gap-1 rounded-lg shadow-lg bg-slate-700 p-4">
+						<div className="flex flex-col items-start justify-between gap-1 rounded-lg shadow-lg bg-slate-700 p-4 w-4/5">
 							<label className="-mt-2 text-gray-300 w-full" htmlFor="chatName">
 								Chat name
 							</label>
@@ -321,20 +331,22 @@ const Chat: React.FC<Props> = ({ chat }) => {
 								type="text"
 							/>
 						</div>
-						<div className="flex flex-col items-start justify-between gap-1 rounded-lg shadow-lg bg-slate-700 p-4 max-w-64">
-							<MultipleSelector
-								className=""
-								options={options}
-								defaultOptions={options}
-								placeholder=""
-								ref={membersRef}
-								hidePlaceholderWhenSelected
-								emptyIndicator={
-									<p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
-										{options.length < 1 ? "..." : "Not users found"}
-									</p>
-								}
-							/>
+					</>
+				</Modal>
+			)}
+
+			{showManageMembersModal && (
+				<Modal
+					modalTitle="Manage members"
+					handleConfirmModal={() => null}
+					setShowModal={setShowManageMembersModal}
+					onlyCloseButton
+				>
+					<>
+						<div className="bg-gray-800 rounded-xl border  h-full max-h-[70vh] min-w-96 flex flex-col items-center justify-start p-2 overflow-y-auto custom-scroll">
+							{chat?.members.map((membership, index) => (
+								<ListItem chatMembership={membership} key={index} />
+							))}
 						</div>
 					</>
 				</Modal>

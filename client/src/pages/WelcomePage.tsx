@@ -38,6 +38,7 @@ const WelcomePage = () => {
 								Username
 							</label>
 							<input
+								maxLength={20}
 								id="username"
 								name="username"
 								className="text-gray-100 text-lg focus:outline-none autofill:shadow-inner autofill:bg-slate-600"

@@ -19,7 +19,7 @@ const ConfirmModal: React.FC<Props> = ({ onConfirm, children }) => {
 	return (
 		<AlertDialog>
 			<AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
-			<AlertDialogContent>
+			<AlertDialogContent id="confirmModal">
 				<AlertDialogHeader>
 					<AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
 					<AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
