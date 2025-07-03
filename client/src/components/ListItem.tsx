@@ -2,12 +2,15 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import ConfirmModal from "./ConfirmModal";
 import type { ChatMembership, ChatType } from "@/utils/types";
 import { useState } from "react";
+import { useUsernameContext } from "@/context/useUsernameContext";
 
 interface Props {
 	chatMembership: ChatMembership;
 }
 
 const ListItem: React.FC<Props> = ({ chatMembership }) => {
+	const { username } = useUsernameContext();
+
 	const onGiveAdminClick = () => {
 		console.log("give admin to " + chatMembership.user.username);
 	};
@@ -19,6 +22,9 @@ const ListItem: React.FC<Props> = ({ chatMembership }) => {
 	};
 
 	const [showMyself, setShowMyself] = useState(true);
+
+	const isChatMembershipMine =
+		username.toLowerCase() != chatMembership.user.username.toLowerCase();
 
 	return (
 		<>
@@ -64,16 +70,21 @@ const ListItem: React.FC<Props> = ({ chatMembership }) => {
 							</Tooltip>
 						)}
 
-						<Tooltip>
-							<ConfirmModal onConfirm={onExpelClick}>
-								<TooltipTrigger className="flex justify-center items-center">
-									<img src="expel.svg" className="hover:cursor-pointer w-6 h-6" />
-								</TooltipTrigger>
-							</ConfirmModal>
-							<TooltipContent>
-								<p>Kick from chat</p>
-							</TooltipContent>
-						</Tooltip>
+						{isChatMembershipMine && (
+							<Tooltip>
+								<ConfirmModal onConfirm={onExpelClick}>
+									<TooltipTrigger className="flex justify-center items-center">
+										<img
+											src="expel.svg"
+											className="hover:cursor-pointer w-6 h-6"
+										/>
+									</TooltipTrigger>
+								</ConfirmModal>
+								<TooltipContent>
+									<p>Kick from chat</p>
+								</TooltipContent>
+							</Tooltip>
+						)}
 					</div>
 				</div>
 			) : (

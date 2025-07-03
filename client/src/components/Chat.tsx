@@ -19,6 +19,7 @@ import { useChatContext } from "@/context/useChatContext";
 import { useSpinner } from "@/context/useSpinner";
 import ConfirmModal from "./ConfirmModal";
 import ListItem from "./ListItem";
+import { profile } from "console";
 
 interface Props {
 	chat: ChatType | null;
@@ -50,6 +51,11 @@ const Chat: React.FC<Props> = ({ chat }) => {
 			return allUsernames;
 		}
 	});
+
+	const isCurrentUserChatAdmin = chat?.members.some(
+		(membership) =>
+			membership.isAdmin && membership.user.username.toLowerCase() == username.toLowerCase(),
+	);
 
 	useEffect(() => {
 		if (chat) {
@@ -146,12 +152,35 @@ const Chat: React.FC<Props> = ({ chat }) => {
 			chatId: chat?.id!,
 		};
 
-		showSpinner(true);
+		const provisionalMessage: MessageInterface = {
+			fake: true,
+			content: messageContent,
+			username,
+			createdAt: new Date(),
+		};
+
+		setMessages((prevState) => [...prevState!, provisionalMessage]);
+
 		const messageDTO = await sendMessage({ message });
-		showSpinner(false);
+
 		if (messageDTO != null) {
-			setMessages((prevState) => [...prevState!, messageDTO]);
+			setMessages((prevState) => {
+				const provisionalMessageIndex = prevState!.findIndex(
+					(msg) => msg.content == messageContent && msg.fake == true,
+				);
+				prevState![provisionalMessageIndex] = messageDTO;
+				const newState = [...prevState!];
+
+				return newState;
+			});
 			chat?.messages.push(messageDTO);
+		} else {
+			setMessages((prevState) => {
+				const newState = prevState!.filter(
+					(msg) => msg.content != messageContent || msg.fake != true,
+				);
+				return [...newState];
+			});
 		}
 	};
 
@@ -172,42 +201,47 @@ const Chat: React.FC<Props> = ({ chat }) => {
 							</div>
 						</div>
 						<div className="flex items-center justify-end gap-3 mr-3 min-w-[140px]">
-							<Tooltip>
-								<TooltipTrigger>
-									<img
-										className="w-6 h-6 hover:cursor-pointer"
-										src="edit-chat.svg"
-										onClick={handleEditChatNameClick}
-									/>
-								</TooltipTrigger>
-								<TooltipContent>
-									<p>Edit chat name</p>
-								</TooltipContent>
-							</Tooltip>
-							<Tooltip>
-								<TooltipTrigger>
-									<img
-										className="w-6 h-6 hover:cursor-pointer"
-										src="manage-members.svg"
-										onClick={handleManageMembersClick}
-									/>
-								</TooltipTrigger>
-								<TooltipContent>
-									<p>Manage members</p>
-								</TooltipContent>
-							</Tooltip>
-							<Tooltip>
-								<TooltipTrigger>
-									<img
-										className="w-6 h-6 hover:cursor-pointer"
-										src="add-members.svg"
-										onClick={() => handleAddMembersClick()}
-									/>
-								</TooltipTrigger>
-								<TooltipContent>
-									<p>Add members</p>
-								</TooltipContent>
-							</Tooltip>
+							{isCurrentUserChatAdmin && (
+								<>
+									<Tooltip>
+										<TooltipTrigger>
+											<img
+												className="w-6 h-6 hover:cursor-pointer"
+												src="edit-chat.svg"
+												onClick={handleEditChatNameClick}
+											/>
+										</TooltipTrigger>
+										<TooltipContent>
+											<p>Edit chat name</p>
+										</TooltipContent>
+									</Tooltip>
+
+									<Tooltip>
+										<TooltipTrigger>
+											<img
+												className="w-6 h-6 hover:cursor-pointer"
+												src="manage-members.svg"
+												onClick={handleManageMembersClick}
+											/>
+										</TooltipTrigger>
+										<TooltipContent>
+											<p>Manage members</p>
+										</TooltipContent>
+									</Tooltip>
+									<Tooltip>
+										<TooltipTrigger>
+											<img
+												className="w-6 h-6 hover:cursor-pointer"
+												src="add-members.svg"
+												onClick={handleAddMembersClick}
+											/>
+										</TooltipTrigger>
+										<TooltipContent>
+											<p>Add members</p>
+										</TooltipContent>
+									</Tooltip>
+								</>
+							)}
 							<Tooltip>
 								<TooltipTrigger>
 									<img
@@ -285,7 +319,7 @@ const Chat: React.FC<Props> = ({ chat }) => {
 				</>
 			)}
 
-			{/* MODAL */}
+			{/* MODALS */}
 
 			{showMembersModal && (
 				<Modal

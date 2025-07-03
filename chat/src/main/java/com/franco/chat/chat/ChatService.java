@@ -91,32 +91,28 @@ public class ChatService {
 	}
 
 
-	public ResponseDTO giveAdminToUsers(Long chatId, List<String> usernames) {
+	public ResponseDTO giveAdminToUser(Long chatId, String username) {
 		Optional<Chat> optionalChat = this.chatRepository.findById(chatId);
 		try {
 			if (optionalChat.isPresent()) {
 
-				List<AppUser> usersToBeAdmin = usernames.stream()
-						.map(this.appUserRepository::findByUsernameIgnoreCase)
-						.map(Optional::orElseThrow)
-						.toList();
-				List<ChatMembership> chatMemberships = usersToBeAdmin.stream()
-						.map(appUser -> this.chatMembershipRepository.findByAppUserIdAndChatId(appUser.getId(), chatId))
-						.map(Optional::orElseThrow)
-						.toList();
+				AppUser userToBeAdmin = this.appUserRepository.findByUsernameIgnoreCase(username).orElseThrow();
 
-				List<ChatMembership> newAdminsMemberships = chatMemberships.stream()
-						.peek(membership -> membership.setAdmin(true))
-						.toList();
+				ChatMembership chatMembership = this.chatMembershipRepository.findByAppUserIdAndChatId(
+						userToBeAdmin.getId(),
+						chatId
+				).orElseThrow();
 
-				this.chatMembershipRepository.saveAll(newAdminsMemberships);
+				chatMembership.setAdmin(true);
 
-				return new ResponseDTO(true, "Users successfully converted to admins", null, HttpStatus.OK);
+				this.chatMembershipRepository.save(chatMembership);
+
+				return new ResponseDTO(true, "User successfully converted to admin", null, HttpStatus.OK);
 			} else {
 				return new ResponseDTO(false, "Chat not found", null, HttpStatus.NOT_FOUND);
 			}
 		} catch (Exception e) {
-			return new ResponseDTO(false, "One or more of the users not found", null, HttpStatus.NOT_FOUND);
+			return new ResponseDTO(false, "user not found", null, HttpStatus.NOT_FOUND);
 		}
 	}
 
@@ -177,6 +173,64 @@ public class ChatService {
 			}
 		} catch (Exception e) {
 			return new ResponseDTO(false, "One or more of the users not found", null, HttpStatus.NOT_FOUND);
+		}
+	}
+
+	public ResponseDTO removeMember(Long chatId, String username) {
+		Optional<Chat> optionalChat = this.chatRepository.findById(chatId);
+		try {
+			if (optionalChat.isPresent()) {
+				Optional<AppUser> optionalAppUser = this.appUserRepository.findByUsernameIgnoreCase(username);
+				if (optionalAppUser.isPresent()) {
+					AppUser userToRemove = optionalAppUser.get();
+
+					ChatMembership membership = this.chatMembershipRepository.findByAppUserIdAndChatId(
+							userToRemove.getId(),
+							chatId
+					).orElseThrow();
+
+					this.chatMembershipRepository.delete(membership);
+
+					return new ResponseDTO(true, "User successfully deleted from chat", null, HttpStatus.OK);
+				} else {
+					return new ResponseDTO(false, "User not found", null, HttpStatus.NOT_FOUND);
+				}
+			} else {
+				return new ResponseDTO(false, "Chat not found", null, HttpStatus.NOT_FOUND);
+			}
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+			return new ResponseDTO(
+					false,
+					"Something went wrong while deleting the chat",
+					null,
+					HttpStatus.INTERNAL_SERVER_ERROR
+			);
+		}
+	}
+
+	public ResponseDTO editChatName(Long chatId, String name) {
+		Optional<Chat> optionalChat = this.chatRepository.findById(chatId);
+		try {
+			if (optionalChat.isPresent()) {
+				Chat chat = optionalChat.get();
+
+				chat.setName(name);
+
+				this.chatRepository.save(chat);
+
+				return new ResponseDTO(true, "Chat name changed", null, HttpStatus.OK);
+			} else {
+				return new ResponseDTO(false, "Chat not found", null, HttpStatus.NOT_FOUND);
+			}
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+			return new ResponseDTO(
+					false,
+					"Something went wrong while deleting the chat",
+					null,
+					HttpStatus.INTERNAL_SERVER_ERROR
+			);
 		}
 	}
 }

@@ -33,6 +33,14 @@ public class ChatController {
 		return new ResponseEntity<>(responseDTO, responseDTO.status());
 	}
 
+	@PutMapping(path = "{chatId}/edit-name")
+	public ResponseEntity<ResponseDTO> editChatName(
+			@PathVariable("chatId") Long chatId, @RequestBody EditChatNameRequest request) {
+		ResponseDTO responseDTO = this.chatService.editChatName(chatId, request.name());
+
+		return new ResponseEntity<>(responseDTO, responseDTO.status());
+	}
+
 	@PutMapping(path = "{chatId}/add-users")
 	public ResponseEntity<ResponseDTO> addNewUsersToChat(
 			@PathVariable("chatId") Long chatId, @RequestBody AddNewUsersToChatRequest request) {
@@ -42,12 +50,28 @@ public class ChatController {
 	}
 
 	@PutMapping(path = "{chatId}/give-admin")
-	public ResponseEntity<ResponseDTO> giveAdminToUsers(
+	public ResponseEntity<ResponseDTO> giveAdminToUser(
 			@PathVariable("chatId") Long chatId, @RequestBody GiveAdminRequest request) {
-		ResponseDTO responseDTO = this.chatService.giveAdminToUsers(chatId, request.usernames());
+		ResponseDTO responseDTO = this.chatService.giveAdminToUser(chatId, request.username());
 
 		return new ResponseEntity<>(responseDTO, responseDTO.status());
 	}
+
+	@DeleteMapping(path = "{chatId}/remove-member")
+	public ResponseEntity<ResponseDTO> removeMember(
+			@PathVariable("chatId") Long chatId, @RequestBody AppUserRequest request) {
+		ResponseDTO responseDTO = this.chatService.removeMember(chatId, request.username());
+
+		return new ResponseEntity<>(responseDTO, responseDTO.status());
+	}
+
+//	@DeleteMapping(path = "{chatId}/exit-chat")
+//	public ResponseEntity<ResponseDTO> exitChat(
+//			@PathVariable("chatId") Long chatId, @RequestBody AppUserRequest request) {
+//		ResponseDTO responseDTO = this.chatService.removeMember(chatId, request.username());
+//
+//		return new ResponseEntity<>(responseDTO, responseDTO.status());
+//	}
 
 	@DeleteMapping(path = "{chatId}")
 	public ResponseEntity<ResponseDTO> deleteChat(@PathVariable("chatId") Long chatId, @RequestBody DeleteChatRequest request) {

@@ -123,16 +123,16 @@ export const sendMessage = async ({
 		const res: ApiResponse<MessageInterface | null> = await rawRes.json();
 
 		if (res.success && res.content) {
-			toast.success(res.message);
+			console.log(res.message);
 		} else {
 			console.error(res.message);
-			toast.error("Something went wrong!");
+			toast.error("Something went wrong whit the message!");
 		}
 
 		return res.content;
 	} catch (e) {
 		console.error((e as Error).message);
-		toast.error("Something went wrong!");
+		toast.error("Something went wrong whit the message!");
 		return null;
 	}
 };

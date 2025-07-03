@@ -12,6 +12,7 @@ import { useUsernameContext } from "@/context/useUsernameContext";
 import { toast } from "sonner";
 import { useChatContext } from "@/context/useChatContext";
 import Modal from "./Modal";
+import { useSpinner } from "@/context/useSpinner";
 
 interface Props {
 	chats: ChatType[];
@@ -20,6 +21,7 @@ interface Props {
 const ChatList: React.FC<Props> = ({ chats }) => {
 	const { username } = useUsernameContext();
 	const { initializeUserChats } = useChatContext();
+	const { showSpinner } = useSpinner();
 
 	const [showModal, setShowModal] = useState(false);
 	const [options, setOptions] = useState<Option[]>([]);
@@ -59,10 +61,14 @@ const ChatList: React.FC<Props> = ({ chats }) => {
 				membersNames: usernamesSelected,
 			};
 
+			showSpinner(true);
+
 			const res = await createChat({ chat });
 			if (res !== null) {
 				initializeUserChats({ username });
 			}
+
+			showSpinner(false);
 		} else {
 			toast.error("Something went wrong!");
 		}
