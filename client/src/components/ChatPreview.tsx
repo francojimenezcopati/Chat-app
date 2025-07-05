@@ -42,15 +42,6 @@ const ChatPreview: React.FC<Props> = ({ chat }) => {
 					<span className="text-sm text-gray-400 truncate w-full">{lastMessage}</span>
 				</div>
 			</div>
-			{/*
-			<div className="flex justify-start items-center gap-4 rounded-3xl  w-full h-fit p-4 
-				<ChatIcon usernames={memberUsernames} />
-				<div className="flex flex-col justify-center items-start flex-1 overflow-hidden">
-					<span className="text-lg text-slate-100 truncate w-full">{chat.name}</span>
-					<span className="text-sm text-gray-400 truncate w-full">{lastMessage}</span>
-				</div>
-			</div>
-			*/}
 		</>
 	);
 };

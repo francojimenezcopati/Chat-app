@@ -8,6 +8,8 @@ import type {
 	MessageRequest,
 	MessageInterface,
 	AddMembersRequest,
+	MakeAdminRequest,
+	EditChatNameRequest,
 } from "../utils/types";
 
 export const createUser = async ({ username }: { username: string }): Promise<boolean> => {
@@ -166,93 +168,80 @@ export const addUsersToChat = async ({
 	}
 };
 
-// export const updateTask = async ({
-// 	accessToken,
-// 	id,
-// 	task,
-// }: {
-// 	accessToken: string;
-// 	id: Id;
-// 	task: TaskRequest;
-// }): Promise<Task | null> => {
-// 	try {
-// 		const rawRes = await fetch(API_URLS.TASKS + id, {
-// 			method: METHODS.PUT,
-// 			headers: {
-// 				...ContentTypeHeader,
-// 				Authorization: "Bearer " + accessToken,
-// 			},
-// 			body: JSON.stringify(task),
-// 		});
-// 		const res: ApiResponse<Task | null> = await rawRes.json();
-//
-// 		if (res.success && res.content) {
-// 			toast.success(res.message);
-// 		} else {
-// 			toast.error(res.message);
-// 		}
-//
-// 		return res.content;
-// 	} catch (e) {
-// 		toast.error((e as Error).message);
-// 		return null;
-// 	}
-// };
-//
-// export const deleteTask = async ({
-// 	accessToken,
-// 	id,
-// }: {
-// 	accessToken: string;
-// 	id: Id;
-// }): Promise<boolean> => {
-// 	try {
-// 		const rawRes = await fetch(API_URLS.TASKS + id, {
-// 			method: METHODS.DELETE,
-// 			headers: {
-// 				...ContentTypeHeader,
-// 				Authorization: "Bearer " + accessToken,
-// 			},
-// 		});
-// 		const res: ApiResponse<null> = await rawRes.json();
-//
-// 		if (res.success) {
-// 			toast.success(res.message);
-// 		} else {
-// 			toast.error(res.message);
-// 		}
-//
-// 		return res.success;
-// 	} catch (e) {
-// 		toast.error((e as Error).message);
-// 		return false;
-// 	}
-// };
-//
-// export const deleteAllTasks = async ({
-// 	accessToken,
-// }: {
-// 	accessToken: string;
-// }): Promise<boolean> => {
-// 	try {
-// 		const rawRes = await fetch(API_URLS.TASKS, {
-// 			method: METHODS.DELETE,
-// 			headers: {
-// 				...ContentTypeHeader,
-// 				Authorization: "Bearer " + accessToken,
-// 			},
-// 		});
-// 		const res: ApiResponse<null> = await rawRes.json();
-//
-// 		if (res.success) {
-// 			toast.success(res.message);
-// 		} else {
-// 			toast.error(res.message);
-// 		}
-//
-// 		return res.success;
-// 	} catch (e) {
-// 		toast.error((e as Error).message);
-// 		return false;
-// 	}
-// };
+export const giveAdminToUser = async ({ username, chatId }: MakeAdminRequest): Promise<boolean> => {
+	try {
+		const rawRes = await fetch(API_URLS.CHAT + `/${chatId}/give-admin`, {
+			method: METHODS.PUT,
+			headers: {
+				...ContentTypeHeader,
+			},
+			body: JSON.stringify({ username }),
+		});
+		const res: ApiResponse<null> = await rawRes.json();
+
+		if (res.success) {
+			toast.success(res.message);
+		} else {
+			console.error(res.message);
+			toast.error("Something went wrong!");
+		}
+
+		return res.success;
+	} catch (e) {
+		console.error((e as Error).message);
+		toast.error("Something went wrong!");
+		return false;
+	}
+};
+
+export const removeMember = async ({ username, chatId }: MakeAdminRequest): Promise<boolean> => {
+	try {
+		const rawRes = await fetch(API_URLS.CHAT + `/${chatId}/remove-member`, {
+			method: METHODS.DELETE,
+			headers: {
+				...ContentTypeHeader,
+			},
+			body: JSON.stringify({ username }),
+		});
+		const res: ApiResponse<null> = await rawRes.json();
+
+		if (res.success) {
+			toast.success(res.message);
+		} else {
+			console.error(res.message);
+			toast.error("Something went wrong!");
+		}
+
+		return res.success;
+	} catch (e) {
+		console.error((e as Error).message);
+		toast.error("Something went wrong!");
+		return false;
+	}
+};
+
+export const editChatName = async ({ name, chatId }: EditChatNameRequest): Promise<boolean> => {
+	try {
+		const rawRes = await fetch(API_URLS.CHAT + `/${chatId}/remove-member`, {
+			method: METHODS.PUT,
+			headers: {
+				...ContentTypeHeader,
+			},
+			body: JSON.stringify({ name }),
+		});
+		const res: ApiResponse<null> = await rawRes.json();
+
+		if (res.success) {
+			toast.success(res.message);
+		} else {
+			console.error(res.message);
+			toast.error("Something went wrong!");
+		}
+
+		return res.success;
+	} catch (e) {
+		console.error((e as Error).message);
+		toast.error("Something went wrong!");
+		return false;
+	}
+};

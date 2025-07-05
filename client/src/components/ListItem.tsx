@@ -1,8 +1,11 @@
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import ConfirmModal from "./ConfirmModal";
-import type { ChatMembership, ChatType } from "@/utils/types";
+import type { ChatMembership } from "@/utils/types";
 import { useState } from "react";
 import { useUsernameContext } from "@/context/useUsernameContext";
+import { giveAdminToUser, removeMember } from "@/api/use.api";
+import { useChatContext } from "@/context/useChatContext";
+import { useSpinner } from "@/context/useSpinner";
 
 interface Props {
 	chatMembership: ChatMembership;
@@ -10,15 +13,60 @@ interface Props {
 
 const ListItem: React.FC<Props> = ({ chatMembership }) => {
 	const { username } = useUsernameContext();
+	const { activeChat, initializeUserChats, setSync } = useChatContext();
+	const { showSpinner } = useSpinner();
 
-	const onGiveAdminClick = () => {
-		console.log("give admin to " + chatMembership.user.username);
+	const onGiveAdminClick = async () => {
+		chatMembership.isAdmin = true;
+
+		showSpinner(true);
+
+		const success = await giveAdminToUser({
+			chatId: activeChat?.id!,
+			username: chatMembership.user.username,
+		});
+
+		if (success) {
+			await initializeUserChats({ username });
+			showSpinner(false);
+		} else {
+			showSpinner(false);
+			chatMembership.isAdmin = false;
+		}
 	};
 
-	const onExpelClick = () => {
-		console.log("Kick from chat: " + chatMembership.user.username);
-
+	const onExpelClick = async () => {
 		setShowMyself(false);
+
+		// const index = activeChat!.members.indexOf(chatMembership);
+		// const copyOfMembers = [...activeChat!.members];
+		// const membersWithoutExpeled = [
+		// 	...copyOfMembers.slice(0, index),
+		// 	...copyOfMembers.slice(index + 1),
+		// ];
+		//
+		// console.log(membersWithoutExpeled);
+
+		showSpinner(true);
+
+		const success = await removeMember({
+			chatId: activeChat?.id!,
+			username: chatMembership.user.username,
+		});
+
+		if (success) {
+			// await initializeUserChats({ username });
+
+			// console.log(membersWithoutExpeled);
+
+			setSync(true);
+
+			showSpinner(false);
+		} else {
+			showSpinner(false);
+			// activeChat!.members = copyOfMembers;
+			setShowMyself(true);
+		}
 	};
 
 	const [showMyself, setShowMyself] = useState(true);

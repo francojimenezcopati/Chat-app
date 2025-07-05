@@ -19,6 +19,8 @@ interface Props {
 }
 
 const ChatList: React.FC<Props> = ({ chats }) => {
+	console.log("chat list component");
+	console.log(chats);
 	const { username } = useUsernameContext();
 	const { initializeUserChats } = useChatContext();
 	const { showSpinner } = useSpinner();

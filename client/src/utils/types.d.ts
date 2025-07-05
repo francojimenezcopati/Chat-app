@@ -2,6 +2,7 @@ export interface MessageInterface {
 	content: string;
 	username: string;
 	createdAt: Date;
+	fake?: boolean;
 }
 
 export interface MessageRequest {
@@ -21,6 +22,8 @@ export interface ChatContextType {
 	activeChat: ChatType | null;
 	setActiveChat: React.Dispatch<React.SetStateAction<ChatType | null>>;
 	initializeUserChats: ({ username }: { username: string }) => Promise<void>;
+	sync: boolean;
+	setSync: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export interface SpinnerContextType {
@@ -55,6 +58,16 @@ export interface ChatRequest {
 
 export interface AddMembersRequest {
 	usernames: string[];
+	chatId: number;
+}
+
+export interface MakeAdminRequest {
+	username: string;
+	chatId: number;
+}
+
+export interface EditChatNameRequest {
+	name: string;
 	chatId: number;
 }
 

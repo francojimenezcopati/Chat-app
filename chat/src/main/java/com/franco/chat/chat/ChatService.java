@@ -64,6 +64,30 @@ public class ChatService {
 		}
 	}
 
+	public ResponseDTO getUserChats(String username) {
+		try {
+			Optional<AppUser> optionalAppUser = this.appUserRepository.findByUsernameIgnoreCase(username);
+			if (optionalAppUser.isPresent()) {
+				AppUser appUser = optionalAppUser.get();
+
+				List<ChatMembership> userMemberships = this.chatMembershipRepository.findAllByAppUser(appUser);
+
+				List<ChatDTO> userChatDTOs = new ArrayList<>();
+				if (!userMemberships.isEmpty()) {
+					List<Chat> userChats = userMemberships.stream().map(ChatMembership::getChat).toList();
+
+					userChatDTOs = userChats.stream().map(this.chatDTOMapper).toList();
+				}
+
+				return new ResponseDTO(true, "", userChatDTOs, HttpStatus.OK);
+			} else {
+				return new ResponseDTO(false, "User not found", null, HttpStatus.NOT_FOUND);
+			}
+		} catch (Exception e) {
+			return new ResponseDTO(false, "One or more of the users not found", null, HttpStatus.NOT_FOUND);
+		}
+	}
+
 	public ResponseDTO addNewUsers(Long chatId, List<String> usernames) {
 		try {
 			List<AppUser> newUsers = usernames.stream()
@@ -90,31 +114,6 @@ public class ChatService {
 		}
 	}
 
-
-	public ResponseDTO giveAdminToUser(Long chatId, String username) {
-		Optional<Chat> optionalChat = this.chatRepository.findById(chatId);
-		try {
-			if (optionalChat.isPresent()) {
-
-				AppUser userToBeAdmin = this.appUserRepository.findByUsernameIgnoreCase(username).orElseThrow();
-
-				ChatMembership chatMembership = this.chatMembershipRepository.findByAppUserIdAndChatId(
-						userToBeAdmin.getId(),
-						chatId
-				).orElseThrow();
-
-				chatMembership.setAdmin(true);
-
-				this.chatMembershipRepository.save(chatMembership);
-
-				return new ResponseDTO(true, "User successfully converted to admin", null, HttpStatus.OK);
-			} else {
-				return new ResponseDTO(false, "Chat not found", null, HttpStatus.NOT_FOUND);
-			}
-		} catch (Exception e) {
-			return new ResponseDTO(false, "user not found", null, HttpStatus.NOT_FOUND);
-		}
-	}
 
 	public ResponseDTO deleteChat(Long chatId, Long userWithAdminId) {
 		Optional<Chat> optionalChat = this.chatRepository.findById(chatId);
@@ -152,29 +151,31 @@ public class ChatService {
 		}
 	}
 
-	public ResponseDTO getUserChats(String username) {
+	public ResponseDTO giveAdminToUser(Long chatId, String username) {
+		Optional<Chat> optionalChat = this.chatRepository.findById(chatId);
 		try {
-			Optional<AppUser> optionalAppUser = this.appUserRepository.findByUsernameIgnoreCase(username);
-			if (optionalAppUser.isPresent()) {
-				AppUser appUser = optionalAppUser.get();
+			if (optionalChat.isPresent()) {
 
-				List<ChatMembership> userMemberships = this.chatMembershipRepository.findAllByAppUser(appUser);
+				AppUser userToBeAdmin = this.appUserRepository.findByUsernameIgnoreCase(username).orElseThrow();
 
-				List<ChatDTO> userChatDTOs = new ArrayList<>();
-				if (!userMemberships.isEmpty()) {
-					List<Chat> userChats = userMemberships.stream().map(ChatMembership::getChat).toList();
+				ChatMembership chatMembership = this.chatMembershipRepository.findByAppUserIdAndChatId(
+						userToBeAdmin.getId(),
+						chatId
+				).orElseThrow();
 
-					userChatDTOs = userChats.stream().map(this.chatDTOMapper).toList();
-				}
+				chatMembership.setAdmin(true);
 
-				return new ResponseDTO(true, "", userChatDTOs, HttpStatus.OK);
+				this.chatMembershipRepository.save(chatMembership);
+
+				return new ResponseDTO(true, "User successfully converted to admin", null, HttpStatus.OK);
 			} else {
-				return new ResponseDTO(false, "User not found", null, HttpStatus.NOT_FOUND);
+				return new ResponseDTO(false, "Chat not found", null, HttpStatus.NOT_FOUND);
 			}
 		} catch (Exception e) {
-			return new ResponseDTO(false, "One or more of the users not found", null, HttpStatus.NOT_FOUND);
+			return new ResponseDTO(false, "user not found", null, HttpStatus.NOT_FOUND);
 		}
 	}
+
 
 	public ResponseDTO removeMember(Long chatId, String username) {
 		Optional<Chat> optionalChat = this.chatRepository.findById(chatId);
@@ -202,7 +203,7 @@ public class ChatService {
 			System.out.println(e.getMessage());
 			return new ResponseDTO(
 					false,
-					"Something went wrong while deleting the chat",
+					"Something went wrong while deleting",
 					null,
 					HttpStatus.INTERNAL_SERVER_ERROR
 			);
@@ -227,7 +228,7 @@ public class ChatService {
 			System.out.println(e.getMessage());
 			return new ResponseDTO(
 					false,
-					"Something went wrong while deleting the chat",
+					"Something went wrong while editing the chat",
 					null,
 					HttpStatus.INTERNAL_SERVER_ERROR
 			);

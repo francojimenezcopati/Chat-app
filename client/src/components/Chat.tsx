@@ -26,7 +26,9 @@ interface Props {
 }
 
 const Chat: React.FC<Props> = ({ chat }) => {
-	const { initializeUserChats } = useChatContext();
+	// console.log("--- chat.tsx comp ---");
+	// console.log(chat);
+	const { initializeUserChats, sync, setSync } = useChatContext();
 	const { username } = useUsernameContext();
 	const { showSpinner } = useSpinner();
 
@@ -63,12 +65,20 @@ const Chat: React.FC<Props> = ({ chat }) => {
 
 			setMessages(chat.messages);
 		}
-		console.log(chat);
 	}, [chat]);
 
 	useEffect(() => {
 		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
 	}, [messages]);
+
+	useEffect(() => {
+		if (sync && !showManageMembersModal) {
+			showSpinner(true);
+			initializeUserChats({ username }).then(() => showSpinner(false));
+
+			setSync(false);
+		}
+	}, [sync, showManageMembersModal]);
 
 	const handleManageMembersClick = () => {
 		let options: Option[] = [];
@@ -114,6 +124,7 @@ const Chat: React.FC<Props> = ({ chat }) => {
 	const handleConfirmEditChatName = async (e: React.FormEvent) => {
 		e.preventDefault();
 		const newChatName = (document.getElementById("chatName") as HTMLInputElement).value;
+
 		console.log(newChatName);
 
 		setShowEditChatModal(false);

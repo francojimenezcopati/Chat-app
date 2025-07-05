@@ -27,6 +27,7 @@ export const ChatProvider: React.FC<Props> = ({ children }) => {
 
 	const [activeChat, setActiveChat] = useState<ChatType | null>(null);
 	const [chats, setChats] = useState<ChatType[]>([]);
+	const [sync, setSync] = useState(false);
 
 	const contextData: ChatContextType = {
 		chats,
@@ -34,6 +35,8 @@ export const ChatProvider: React.FC<Props> = ({ children }) => {
 		activeChat,
 		setActiveChat,
 		initializeUserChats,
+		sync,
+		setSync,
 	};
 
 	return <ChatContext.Provider value={contextData}>{children}</ChatContext.Provider>;

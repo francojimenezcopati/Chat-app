@@ -33,14 +33,6 @@ public class ChatController {
 		return new ResponseEntity<>(responseDTO, responseDTO.status());
 	}
 
-	@PutMapping(path = "{chatId}/edit-name")
-	public ResponseEntity<ResponseDTO> editChatName(
-			@PathVariable("chatId") Long chatId, @RequestBody EditChatNameRequest request) {
-		ResponseDTO responseDTO = this.chatService.editChatName(chatId, request.name());
-
-		return new ResponseEntity<>(responseDTO, responseDTO.status());
-	}
-
 	@PutMapping(path = "{chatId}/add-users")
 	public ResponseEntity<ResponseDTO> addNewUsersToChat(
 			@PathVariable("chatId") Long chatId, @RequestBody AddNewUsersToChatRequest request) {
@@ -61,6 +53,14 @@ public class ChatController {
 	public ResponseEntity<ResponseDTO> removeMember(
 			@PathVariable("chatId") Long chatId, @RequestBody AppUserRequest request) {
 		ResponseDTO responseDTO = this.chatService.removeMember(chatId, request.username());
+
+		return new ResponseEntity<>(responseDTO, responseDTO.status());
+	}
+
+	@PutMapping(path = "{chatId}/edit-name")
+	public ResponseEntity<ResponseDTO> editChatName(
+			@PathVariable("chatId") Long chatId, @RequestBody EditChatNameRequest request) {
+		ResponseDTO responseDTO = this.chatService.editChatName(chatId, request.name());
 
 		return new ResponseEntity<>(responseDTO, responseDTO.status());
 	}
