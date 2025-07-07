@@ -97,7 +97,14 @@ export const getAllUsers = async (): Promise<AppUser[] | null> => {
 		const res: ApiResponse<AppUser[]> = await rawRes.json();
 
 		if (res.success) {
-			return res.content;
+			return res.content.sort((a, b) => {
+				const aLower = a.username.toLowerCase();
+				const bLower = b.username.toLowerCase();
+
+				if (aLower < bLower) return -1;
+				if (aLower > bLower) return 1;
+				return 0;
+			});
 		} else {
 			console.error(res.message);
 			return null;
@@ -125,7 +132,7 @@ export const sendMessage = async ({
 		const res: ApiResponse<MessageInterface | null> = await rawRes.json();
 
 		if (res.success && res.content) {
-			console.log(res.message);
+			// console.log(res.message);
 		} else {
 			console.error(res.message);
 			toast.error("Something went wrong whit the message!");
@@ -206,7 +213,7 @@ export const removeMember = async ({ username, chatId }: MakeAdminRequest): Prom
 		const res: ApiResponse<null> = await rawRes.json();
 
 		if (res.success) {
-			toast.success(res.message);
+			toast.success("Action completed");
 		} else {
 			console.error(res.message);
 			toast.error("Something went wrong!");
@@ -222,7 +229,7 @@ export const removeMember = async ({ username, chatId }: MakeAdminRequest): Prom
 
 export const editChatName = async ({ name, chatId }: EditChatNameRequest): Promise<boolean> => {
 	try {
-		const rawRes = await fetch(API_URLS.CHAT + `/${chatId}/remove-member`, {
+		const rawRes = await fetch(API_URLS.CHAT + `/${chatId}/edit-name`, {
 			method: METHODS.PUT,
 			headers: {
 				...ContentTypeHeader,

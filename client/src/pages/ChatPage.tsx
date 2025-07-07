@@ -11,12 +11,10 @@ interface Props {
 }
 
 const ChatPage: React.FC<Props> = ({ username }) => {
-	console.log("Chat pageee componenttt");
 	const { initializeUserChats, activeChat, chats } = useChatContext();
 	const { showSpinner } = useSpinner();
 
 	const asyncUseEffectFn = async () => {
-		console.log("chat page use effect");
 		showSpinner(true);
 		await initializeUserChats({ username });
 		showSpinner(false);

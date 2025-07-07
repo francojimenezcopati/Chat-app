@@ -29,17 +29,21 @@ public class Message {
 	private String content;
 	private Date createdAt;
 	private String username;
+	@Enumerated(EnumType.STRING)
+	private MessageType type;
 
 	@ManyToOne
 	private AppUser appUser;
 	@ManyToOne
 	private Chat chat;
 
-	public Message(String content, String username, AppUser appUser, Chat chat) {
+	public Message(String content, String username, AppUser appUser, Chat chat, MessageType type) {
 		this.content = content;
 		this.createdAt = new Date();
 		this.username = username;
 		this.appUser = appUser;
 		this.chat = chat;
+		this.type = type;
 	}
+
 }

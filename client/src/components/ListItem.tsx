@@ -1,9 +1,9 @@
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import ConfirmModal from "./ConfirmModal";
-import type { ChatMembership } from "@/utils/types";
+import type { ChatMembership, MessageRequest } from "@/utils/types";
 import { useState } from "react";
 import { useUsernameContext } from "@/context/useUsernameContext";
-import { giveAdminToUser, removeMember } from "@/api/use.api";
+import { giveAdminToUser, removeMember, sendMessage } from "@/api/use.api";
 import { useChatContext } from "@/context/useChatContext";
 import { useSpinner } from "@/context/useSpinner";
 
@@ -38,15 +38,6 @@ const ListItem: React.FC<Props> = ({ chatMembership }) => {
 	const onExpelClick = async () => {
 		setShowMyself(false);
 
-		// const index = activeChat!.members.indexOf(chatMembership);
-		// const copyOfMembers = [...activeChat!.members];
-		// const membersWithoutExpeled = [
-		// 	...copyOfMembers.slice(0, index),
-		// 	...copyOfMembers.slice(index + 1),
-		// ];
-		//
-		// console.log(membersWithoutExpeled);
-
 		showSpinner(true);
 
 		const success = await removeMember({
@@ -55,16 +46,20 @@ const ListItem: React.FC<Props> = ({ chatMembership }) => {
 		});
 
 		if (success) {
-			// await initializeUserChats({ username });
+			const generalMessage: MessageRequest = {
+				username,
+				content: `${username} expelled ${chatMembership.user.username}`,
+				chatId: activeChat?.id!,
+				type: "GENERAL",
+			};
 
-			// console.log(membersWithoutExpeled);
+			await sendMessage({ message: generalMessage });
 
 			setSync(true);
 
 			showSpinner(false);
 		} else {
 			showSpinner(false);
-			// activeChat!.members = copyOfMembers;
 			setShowMyself(true);
 		}
 	};

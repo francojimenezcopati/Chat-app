@@ -1,14 +1,18 @@
+export type MessageType = "PERSONAL" | "GENERAL";
+
 export interface MessageInterface {
 	content: string;
 	username: string;
-	createdAt: Date;
+	createdAt: string;
 	fake?: boolean;
+	type: MessageType;
 }
 
 export interface MessageRequest {
 	content: string;
 	username: string;
 	chatId: number;
+	type: MessageType;
 }
 
 export interface UsernameContextType {

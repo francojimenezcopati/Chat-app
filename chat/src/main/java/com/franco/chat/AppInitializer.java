@@ -6,6 +6,7 @@ import com.franco.chat.chat.ChatService;
 import com.franco.chat.message.Message;
 import com.franco.chat.message.MessageRepository;
 import com.franco.chat.message.MessageService;
+import com.franco.chat.message.MessageType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,6 +33,10 @@ public class AppInitializer implements CommandLineRunner {
 		if (sampleData) {
 			this.appUserService.createAppUser("Pepito");
 			this.appUserService.createAppUser("Belal");
+			this.appUserService.createAppUser("fran");
+			this.appUserService.createAppUser("Test 1");
+			this.appUserService.createAppUser("HolaComoEstas");
+			this.appUserService.createAppUser("YoBienYVos");
 
 			ResponseDTO chatResponse = this.chatService.createChat(
 					"Chat from app init",
@@ -40,11 +45,12 @@ public class AppInitializer implements CommandLineRunner {
 			);
 			ChatDTO chatDTO = (ChatDTO) chatResponse.content();
 
-			this.messageService.createMessage("First message", "Pepito", chatDTO.id());
-			this.messageService.createMessage("Oh, what a nice batman message", "Belal", chatDTO.id());
-			this.messageService.createMessage("Why?", "Pepito", chatDTO.id());
-			this.messageService.createMessage("Because it has no parents", "Belal", chatDTO.id());
-			this.messageService.createMessage(":)", "Belal", chatDTO.id());
+			this.messageService.createMessage("First message", "Pepito", chatDTO.id(), MessageType.PERSONAL);
+			this.messageService.createMessage("Oh, what a nice batman message", "Belal", chatDTO.id(), MessageType.PERSONAL);
+			this.messageService.createMessage("Why?", "Pepito", chatDTO.id(), MessageType.PERSONAL);
+			this.messageService.createMessage("Because it has no parents", "Belal", chatDTO.id(), MessageType.PERSONAL);
+			this.messageService.createMessage(":)", "Belal", chatDTO.id(), MessageType.PERSONAL);
+			this.messageService.createMessage("Pepito left the group", "Pepito", chatDTO.id(), MessageType.GENERAL);
 
 
 			System.out.println("\n\n\n\n");

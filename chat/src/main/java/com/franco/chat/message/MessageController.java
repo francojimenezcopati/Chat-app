@@ -20,10 +20,17 @@ public class MessageController {
 
 	@PostMapping
 	public ResponseEntity<ResponseDTO> createMessage(@RequestBody MessageRequest request){
-		ResponseDTO res = this.messageService.createMessage(request.content(), request.username(), request.chatId());
+		ResponseDTO res = this.messageService.createMessage(request.content(), request.username(), request.chatId(), request.type());
 
 		return new ResponseEntity<>(res, res.status());
 	}
+
+//	@PostMapping(path="general-message")
+//	public ResponseEntity<ResponseDTO> createGeneralMessage(@RequestBody GeneralMessageRequest request){
+//		ResponseDTO res = this.messageService.createGeneralMessage(request.content(),  request.chatId());
+//
+//		return new ResponseEntity<>(res, res.status());
+//	}
 
 	@PutMapping(path = "/{messageId}")
 	public ResponseEntity<ResponseDTO> updateMessage(@PathVariable("messageId") Long messageId, UpdateMessageRequest request){

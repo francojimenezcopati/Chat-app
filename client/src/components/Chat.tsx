@@ -3,7 +3,13 @@ import type { ChatType, MessageInterface, MessageRequest } from "../utils/types"
 import Message from "../components/Message";
 import ChatIcon from "./ChatIcon";
 
-import { addUsersToChat, getAllUsers, sendMessage } from "@/api/use.api";
+import {
+	addUsersToChat,
+	editChatName,
+	getAllUsers,
+	removeMember,
+	sendMessage,
+} from "@/api/use.api";
 import { useUsernameContext } from "@/context/useUsernameContext";
 import { useEffect, useRef, useState } from "react";
 
@@ -17,18 +23,15 @@ import { toast } from "sonner";
 import Modal from "./Modal";
 import { useChatContext } from "@/context/useChatContext";
 import { useSpinner } from "@/context/useSpinner";
-import ConfirmModal from "./ConfirmModal";
 import ListItem from "./ListItem";
-import { profile } from "console";
+import ConfirmModal from "./ConfirmModal";
 
 interface Props {
 	chat: ChatType | null;
 }
 
 const Chat: React.FC<Props> = ({ chat }) => {
-	// console.log("--- chat.tsx comp ---");
-	// console.log(chat);
-	const { initializeUserChats, sync, setSync } = useChatContext();
+	const { initializeUserChats, sync, setSync, setActiveChat } = useChatContext();
 	const { username } = useUsernameContext();
 	const { showSpinner } = useSpinner();
 
@@ -71,12 +74,16 @@ const Chat: React.FC<Props> = ({ chat }) => {
 		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
 	}, [messages]);
 
+	const asyncUseEffect = async () => {
+		showSpinner(true);
+
+		await initializeUserChats({ username });
+
+		setSync(false);
+	};
+
 	useEffect(() => {
 		if (sync && !showManageMembersModal) {
-			showSpinner(true);
-			initializeUserChats({ username }).then(() => showSpinner(false));
-
-			setSync(false);
 		}
 	}, [sync, showManageMembersModal]);
 
@@ -121,12 +128,41 @@ const Chat: React.FC<Props> = ({ chat }) => {
 		});
 	};
 
+	const handleConfirmExitChat = async () => {
+		showSpinner(true);
+		const success = await removeMember({ username, chatId: chat!.id! });
+		if (success) {
+			await initializeUserChats({ username });
+
+			const generalMessage: MessageRequest = {
+				username,
+				content: `${username} left the group`,
+				chatId: chat?.id!,
+				type: "GENERAL",
+			};
+
+			await sendMessage({ message: generalMessage });
+
+			setActiveChat(null);
+		}
+		showSpinner(false);
+	};
+
 	const handleConfirmEditChatName = async (e: React.FormEvent) => {
 		e.preventDefault();
 		const newChatName = (document.getElementById("chatName") as HTMLInputElement).value;
 
+		showSpinner(true);
+
 		console.log(newChatName);
 
+		const success = await editChatName({ name: newChatName, chatId: chat!.id! });
+
+		if (success) {
+			await initializeUserChats({ username });
+		}
+
+		showSpinner(false);
 		setShowEditChatModal(false);
 	};
 
@@ -142,10 +178,29 @@ const Chat: React.FC<Props> = ({ chat }) => {
 				chatId: chat!.id!,
 				usernames: usernamesSelected,
 			});
-			showSpinner(false);
 			if (success) {
-				initializeUserChats({ username });
+				const formattedContent = usernamesSelected.reduce(
+					(prevValue, currentValue, index) => {
+						if (index < usernamesSelected.length - 1) {
+							return prevValue + ", " + currentValue;
+						} else {
+							return prevValue + " & " + currentValue;
+						}
+					},
+				);
+
+				const generalMessage: MessageRequest = {
+					username,
+					content: `${username} added ${formattedContent}`,
+					chatId: chat?.id!,
+					type: "GENERAL",
+				};
+
+				await sendMessage({ message: generalMessage });
+
+				await initializeUserChats({ username });
 			}
+			showSpinner(false);
 		} else {
 			toast.error("Something went wrong!");
 		}
@@ -161,13 +216,15 @@ const Chat: React.FC<Props> = ({ chat }) => {
 			username,
 			content: messageContent,
 			chatId: chat?.id!,
+			type: "PERSONAL",
 		};
 
 		const provisionalMessage: MessageInterface = {
 			fake: true,
 			content: messageContent,
 			username,
-			createdAt: new Date(),
+			createdAt: new Date().toString(),
+			type: "PERSONAL",
 		};
 
 		setMessages((prevState) => [...prevState!, provisionalMessage]);
@@ -253,13 +310,16 @@ const Chat: React.FC<Props> = ({ chat }) => {
 									</Tooltip>
 								</>
 							)}
+
 							<Tooltip>
-								<TooltipTrigger>
-									<img
-										className="w-6 h-6 hover:cursor-pointer"
-										src="exit-chat.svg"
-									/>
-								</TooltipTrigger>
+								<ConfirmModal onConfirm={handleConfirmExitChat}>
+									<TooltipTrigger>
+										<img
+											className="w-6 h-6 hover:cursor-pointer"
+											src="exit-chat.svg"
+										/>
+									</TooltipTrigger>
+								</ConfirmModal>
 								<TooltipContent>
 									<p>Exit chat</p>
 								</TooltipContent>
@@ -272,11 +332,7 @@ const Chat: React.FC<Props> = ({ chat }) => {
 					<div className="flex flex-col w-full h-full p-5 gap-5 overflow-y-auto  custom-scroll">
 						{messages !== undefined &&
 							messages.map((message, index) => (
-								<Message
-									key={index}
-									username={message.username}
-									content={message.content}
-								/>
+								<Message key={index} message={message} />
 							))}
 						<div ref={messagesEndRef} />
 					</div>

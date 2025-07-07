@@ -27,14 +27,14 @@ public class MessageService {
 		return new ResponseDTO(true, "", messageDTOS, HttpStatus.OK);
 	}
 
-	public ResponseDTO createMessage(String content, String username, Long chatId) {
+	public ResponseDTO createMessage(String content, String username, Long chatId, MessageType type) {
 		Optional<AppUser> optionalAppUser = this.appUserRepository.findByUsernameIgnoreCase(username);
 		Optional<Chat> optionalChat = this.chatRepository.findById(chatId);
 		if (optionalAppUser.isPresent() && optionalChat.isPresent()) {
 			AppUser appUser = optionalAppUser.get();
 			Chat chat = optionalChat.get();
 
-			Message message = new Message(content, appUser.getUsername(), appUser, chat);
+			Message message = new Message(content, appUser.getUsername(), appUser, chat, type);
 			Message savedMessage = this.messageRepository.save(message);
 
 			MessageDTO messageDTO = this.messageDTOMapper.apply(savedMessage);

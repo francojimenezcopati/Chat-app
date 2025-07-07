@@ -8,6 +8,6 @@ import java.util.function.Function;
 public class MessageDTOMapper implements Function<Message, MessageDTO> {
 	@Override
 	public MessageDTO apply(Message message) {
-		return new MessageDTO(message.getContent(), message.getUsername(), message.getCreatedAt());
+		return new MessageDTO(message.getContent(), message.getUsername(), message.getCreatedAt(), message.getType());
 	}
 }
