@@ -25,6 +25,7 @@ import { useChatContext } from "@/context/useChatContext";
 import { useSpinner } from "@/context/useSpinner";
 import ListItem from "./ListItem";
 import ConfirmModal from "./ConfirmModal";
+import ChatMessages from "./ChatMessages";
 
 interface Props {
 	chat: ChatType | null;
@@ -35,16 +36,12 @@ const Chat: React.FC<Props> = ({ chat }) => {
 	const { username } = useUsernameContext();
 	const { showSpinner } = useSpinner();
 
-	const messagesEndRef = useRef<HTMLDivElement | null>(null);
-
 	const [showManageMembersModal, setShowManageMembersModal] = useState(false);
 	const [showMembersModal, setShowMembersModal] = useState(false);
 	const [showEditChatModal, setShowEditChatModal] = useState(false);
 
 	const [options, setOptions] = useState<Option[]>([]);
 	const membersRef = useRef<MultipleSelectorRef>(null);
-
-	const [messages, setMessages] = useState<MessageInterface[] | undefined>(chat?.messages);
 
 	const memberUsernames = chat?.members.map((member) => member.user.username);
 	const formattedMemberUsernames = memberUsernames?.reduce((allUsernames, username, index) => {
@@ -65,25 +62,21 @@ const Chat: React.FC<Props> = ({ chat }) => {
 	useEffect(() => {
 		if (chat) {
 			chat.members.sort((left, right) => (left.isAdmin && !right.isAdmin ? -1 : 1));
-
-			setMessages(chat.messages);
 		}
 	}, [chat]);
-
-	useEffect(() => {
-		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-	}, [messages]);
 
 	const asyncUseEffect = async () => {
 		showSpinner(true);
 
 		await initializeUserChats({ username });
 
+		showSpinner(false);
 		setSync(false);
 	};
 
 	useEffect(() => {
 		if (sync && !showManageMembersModal) {
+			asyncUseEffect();
 		}
 	}, [sync, showManageMembersModal]);
 
@@ -207,58 +200,13 @@ const Chat: React.FC<Props> = ({ chat }) => {
 		setShowMembersModal(false);
 	};
 
-	const onSendMessage = async () => {
-		const messageElement = document.getElementById("message") as HTMLInputElement;
-		const messageContent = messageElement.value;
-		messageElement.value = "";
-
-		const message: MessageRequest = {
-			username,
-			content: messageContent,
-			chatId: chat?.id!,
-			type: "PERSONAL",
-		};
-
-		const provisionalMessage: MessageInterface = {
-			fake: true,
-			content: messageContent,
-			username,
-			createdAt: new Date().toString(),
-			type: "PERSONAL",
-		};
-
-		setMessages((prevState) => [...prevState!, provisionalMessage]);
-
-		const messageDTO = await sendMessage({ message });
-
-		if (messageDTO != null) {
-			setMessages((prevState) => {
-				const provisionalMessageIndex = prevState!.findIndex(
-					(msg) => msg.content == messageContent && msg.fake == true,
-				);
-				prevState![provisionalMessageIndex] = messageDTO;
-				const newState = [...prevState!];
-
-				return newState;
-			});
-			chat?.messages.push(messageDTO);
-		} else {
-			setMessages((prevState) => {
-				const newState = prevState!.filter(
-					(msg) => msg.content != messageContent || msg.fake != true,
-				);
-				return [...newState];
-			});
-		}
-	};
-
 	return (
 		<div className="relative flex flex-col items-center justify-start bg-gradient-to-t from-[#292C35] via-80% via-[#363742] to-[#25262f] w-2/3 h-full rounded-b-xl">
 			{chat != null ? (
 				<>
 					{/* TOP BAR */}
 
-					<div className="w-full flex justify-between items-center pt-1">
+					<div className="w-full flex justify-between items-center py-2 drop-shadow-xl drop-shadow-gray-700 shadow-sm shadow-gray-800/50">
 						<div className="flex items-center gap-5 ml-3 ">
 							<ChatIcon usernames={memberUsernames!} />
 							<div className="flex flex-col justify-center items-start ">
@@ -327,56 +275,7 @@ const Chat: React.FC<Props> = ({ chat }) => {
 						</div>
 					</div>
 
-					{/* CAJA MENSAJES */}
-
-					<div className="flex flex-col w-full h-full p-5 gap-5 overflow-y-auto  custom-scroll">
-						{messages !== undefined &&
-							messages.map((message, index) => (
-								<Message key={index} message={message} />
-							))}
-						<div ref={messagesEndRef} />
-					</div>
-
-					{/* INPUT */}
-
-					<div className="flex items-center w-full h-fit px-7 pb-6 gap-2">
-						<div
-							className="w-11/12 h-10 rounded-lg flex items-center justify-between p-2 gap-2 
-							focus-within:outline-2
-							focus-within:outline-blue-400
-							outline-1
-							outline-blue-300
-							shadow-xs
-							shadow-blue-300
-							"
-						>
-							<input
-								className="flex-1 w-full p-1 rounded focus:outline-none text-lg text-wrap h-fit "
-								id="message"
-								type="text"
-								placeholder="Message..."
-								maxLength={200}
-								onKeyDown={(e) => (e.key === "Enter" ? onSendMessage() : null)}
-							/>
-							<Tooltip>
-								<TooltipTrigger>
-									<img
-										className="w-6 h-6 hover:cursor-pointer"
-										src="attach-image.svg"
-									/>
-								</TooltipTrigger>
-								<TooltipContent>
-									<p>Attach image</p>
-								</TooltipContent>
-							</Tooltip>
-						</div>
-						<button
-							onClick={() => onSendMessage()}
-							className="bg-blue-400 hover:bg-blue-400/80 w-10 h-10 rounded-lg text-3xl hover:cursor-pointer flex items-center justify-center"
-						>
-							<img className="h-6 w-6" src="send.svg" />
-						</button>
-					</div>
+					<ChatMessages chat={chat} />
 				</>
 			) : (
 				<>

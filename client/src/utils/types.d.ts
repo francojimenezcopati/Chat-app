@@ -8,6 +8,11 @@ export interface MessageInterface {
 	type: MessageType;
 }
 
+export interface GroupedMessages {
+	date: string;
+	messages: MessageInterface[];
+}
+
 export interface MessageRequest {
 	content: string;
 	username: string;

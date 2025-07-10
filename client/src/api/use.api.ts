@@ -132,7 +132,7 @@ export const sendMessage = async ({
 		const res: ApiResponse<MessageInterface | null> = await rawRes.json();
 
 		if (res.success && res.content) {
-			// console.log(res.message);
+			console.log(res.message);
 		} else {
 			console.error(res.message);
 			toast.error("Something went wrong whit the message!");
