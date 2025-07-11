@@ -1,6 +1,4 @@
-// import { useUsernameContext } from "../context/useUsernameContext";
-import type { ChatType, MessageInterface, MessageRequest } from "../utils/types";
-import Message from "../components/Message";
+import type { ChatType, MessageRequest } from "../utils/types";
 import ChatIcon from "./ChatIcon";
 
 import {

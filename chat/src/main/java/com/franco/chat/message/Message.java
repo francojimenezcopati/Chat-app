@@ -2,6 +2,7 @@ package com.franco.chat.message;
 
 import com.franco.chat.appuser.AppUser;
 import com.franco.chat.chat.Chat;
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -31,6 +32,8 @@ public class Message {
 	private String username;
 	@Enumerated(EnumType.STRING)
 	private MessageType type;
+	@Nullable
+	private String imageURL;
 
 	@ManyToOne
 	private AppUser appUser;
@@ -44,6 +47,12 @@ public class Message {
 		this.appUser = appUser;
 		this.chat = chat;
 		this.type = type;
+		this.imageURL = null;
+	}
+
+	public Message(String content, String username, AppUser appUser, Chat chat, MessageType type, String imageURL) {
+		this(content, username, appUser, chat, type);
+		this.imageURL=imageURL;
 	}
 
 }
