@@ -33,7 +33,8 @@ public class Message {
 	@Enumerated(EnumType.STRING)
 	private MessageType type;
 	@Nullable
-	private String imageURL;
+	@Column(name = "image_url")
+	private String imageUrl;
 
 	@ManyToOne
 	private AppUser appUser;
@@ -47,12 +48,12 @@ public class Message {
 		this.appUser = appUser;
 		this.chat = chat;
 		this.type = type;
-		this.imageURL = null;
+		this.imageUrl = null;
 	}
 
-	public Message(String content, String username, AppUser appUser, Chat chat, MessageType type, String imageURL) {
+	public Message(String content, String username, AppUser appUser, Chat chat, MessageType type, String imageUrl) {
 		this(content, username, appUser, chat, type);
-		this.imageURL=imageURL;
+		this.imageUrl=imageUrl;
 	}
 
 }

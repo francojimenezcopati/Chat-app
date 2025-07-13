@@ -1,6 +1,7 @@
 package com.franco.chat.message;
 
 import com.franco.chat.ResponseDTO;
+import com.franco.chat.SupabaseService;
 import com.franco.chat.appuser.AppUser;
 import com.franco.chat.appuser.AppUserRepository;
 import com.franco.chat.chat.Chat;
@@ -8,6 +9,8 @@ import com.franco.chat.chat.ChatRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,6 +22,7 @@ public class MessageService {
 	private final AppUserRepository appUserRepository;
 	private final ChatRepository chatRepository;
 	private final MessageDTOMapper messageDTOMapper;
+	private final SupabaseService supabaseService;
 
 	public ResponseDTO getAll() {
 		List<Message> messages = this.messageRepository.findAll();
@@ -73,4 +77,39 @@ public class MessageService {
 		}
 	}
 
+	@Transactional
+	public ResponseDTO createMessageWithImage(
+			String content,
+			String username,
+			Long chatId,
+			MessageType type,
+			MultipartFile imageFile
+	) {
+		try {
+			String imageUrl = this.supabaseService.uploadImage(imageFile);
+
+			Optional<AppUser> optionalAppUser = this.appUserRepository.findByUsernameIgnoreCase(username);
+			Optional<Chat> optionalChat = this.chatRepository.findById(chatId);
+			if (optionalAppUser.isPresent() && optionalChat.isPresent()) {
+				AppUser appUser = optionalAppUser.get();
+				Chat chat = optionalChat.get();
+
+				Message message = new Message(content, appUser.getUsername(), appUser, chat, type, imageUrl);
+				Message savedMessage = this.messageRepository.save(message);
+
+				MessageDTO messageDTO = this.messageDTOMapper.apply(savedMessage);
+
+				return new ResponseDTO(true, "Message successfully created", messageDTO, HttpStatus.CREATED);
+			} else {
+				return new ResponseDTO(false, "User or chat not found", null, HttpStatus.NOT_FOUND);
+			}
+		} catch (Exception e) {
+			return new ResponseDTO(
+					false,
+					"An error occurred while trying to create the message with the image: " + e.getMessage(),
+					null,
+					HttpStatus.INTERNAL_SERVER_ERROR
+			);
+		}
+	}
 }

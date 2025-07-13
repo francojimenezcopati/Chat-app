@@ -4,8 +4,9 @@ export interface MessageInterface {
 	content: string;
 	username: string;
 	createdAt: string;
-	fake?: boolean;
 	type: MessageType;
+	imageUrl: string | null;
+	fake?: boolean;
 }
 
 export interface GroupedMessages {

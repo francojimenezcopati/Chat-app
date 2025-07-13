@@ -5,7 +5,8 @@ import { useUsernameContext } from "@/context/useUsernameContext";
 import { useEffect, useRef, useState } from "react";
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { sendMessage } from "@/api/use.api";
+import { sendMessage, sendMessageWithAnImage } from "@/api/use.api";
+import React from "react";
 
 interface Props {
 	chat: ChatType | null;
@@ -120,14 +121,8 @@ const ChatMessages: React.FC<Props> = ({ chat }) => {
 	const onSendMessage = async () => {
 		const imageFile = retrieveImageFile();
 
-		if (imageFile != null) {
-			sendMessageWithImage({ imageFile });
-		}
-
 		const messageElement = document.getElementById("message") as HTMLInputElement;
 		const messageContent = messageElement.value;
-		if (messageContent == "") return;
-		messageElement.value = "";
 
 		const message: MessageRequest = {
 			username,
@@ -136,12 +131,22 @@ const ChatMessages: React.FC<Props> = ({ chat }) => {
 			type: "PERSONAL",
 		};
 
+		if (imageFile != null) {
+			messageElement.value = "";
+			sendMessageWithImage({ imageFile, message });
+			return;
+		}
+
+		if (messageContent == "") return;
+		messageElement.value = "";
+
 		const provisionalMessage: MessageInterface = {
 			fake: true,
 			content: messageContent,
 			username,
 			createdAt: new Date().toString(),
 			type: "PERSONAL",
+			imageUrl: null,
 		};
 
 		setGroupedMessages((prevState) =>
@@ -198,13 +203,31 @@ const ChatMessages: React.FC<Props> = ({ chat }) => {
 		}
 	};
 
-	const sendMessageWithImage = async ({ imageFile }: { imageFile: File }) => {
-		const messageElement = document.getElementById("message") as HTMLInputElement;
-		const messageContent = messageElement.value;
-		console.log(messageContent);
-		console.log("send with image: " + imageFile.name);
+	const sendMessageWithImage = async ({
+		imageFile,
+		message,
+	}: {
+		imageFile: File;
+		message: MessageRequest;
+	}) => {
+		const messageDTO = await sendMessageWithAnImage({ message, imageFile });
 
-		messageElement.value = "";
+		if (messageDTO != null) {
+			setGroupedMessages((prevState) => {
+				return prevState!.map((group) => {
+					if (group.date === getFormattedDate(new Date())) {
+						const todayMessages: MessageInterface[] = group.messages;
+
+						const updatedMessages = [...todayMessages, messageDTO];
+
+						return { ...group, messages: updatedMessages };
+					}
+					return group;
+				});
+			});
+			chat?.messages.push(messageDTO);
+		}
+
 		showImagePreview(false);
 	};
 
@@ -251,9 +274,9 @@ const ChatMessages: React.FC<Props> = ({ chat }) => {
 
 			<div className="flex flex-col w-full h-full p-5 gap-5 overflow-y-auto  custom-scroll">
 				{groupedMessages !== undefined &&
-					groupedMessages.map((group, index) => (
-						<>
-							<div className="flex justify-center w-full h-fit" key={index}>
+					groupedMessages.map((group, i) => (
+						<React.Fragment key={i}>
+							<div className="flex justify-center w-full h-fit">
 								<div className="bg-gray-600 text-white max-w-8/12 text-center flex justify-center items-center px-2 py-1 rounded-sm ">
 									<p className="text-center">{group.date}</p>
 								</div>
@@ -264,7 +287,7 @@ const ChatMessages: React.FC<Props> = ({ chat }) => {
 									<Message key={index} message={message} />
 								))}
 							</>
-						</>
+						</React.Fragment>
 					))}
 				<div ref={messagesEndRef} />
 			</div>

@@ -30,6 +30,7 @@ interface Props {
 }
 
 const Chat: React.FC<Props> = ({ chat }) => {
+	console.log(chat?.messages.slice(-10));
 	const { initializeUserChats, sync, setSync, setActiveChat } = useChatContext();
 	const { username } = useUsernameContext();
 	const { showSpinner } = useSpinner();
