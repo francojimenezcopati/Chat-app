@@ -9,7 +9,7 @@ const WelcomePage = () => {
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		const username = (document.getElementById("username") as HTMLInputElement).value;
+		const username = (document.getElementById("username") as HTMLInputElement).value.trim();
 
 		showSpinner(true);
 		const success = await createUser({ username });

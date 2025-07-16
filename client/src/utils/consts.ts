@@ -1,4 +1,5 @@
 const BASE_URL = `${import.meta.env.VITE_API_URL}` as const;
+export const CONNECT_WEB_SOCKET_URL = `${import.meta.env.VITE_WEB_SOCKET_URL}` as const;
 
 export const API_URLS = {
 	CHAT: BASE_URL + "chat",

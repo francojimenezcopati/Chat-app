@@ -17,7 +17,7 @@ public class WebSocketChatController {
 	private final ChatService chatService;
 
 	@MessageMapping("/chat/get-user-chats")
-	@SendTo("/topic/chat")
+	@SendTo("/topic/user-chats")
 	public ResponseEntity<ResponseDTO> getAllUserChats(@RequestBody AppUserRequest request) {
 		ResponseDTO responseDTO = this.chatService.getUserChats(request.username());
 

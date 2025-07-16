@@ -11,4 +11,16 @@ export default defineConfig({
 			"@": path.resolve(__dirname, "./src"),
 		},
 	},
+	define: {
+		global: {},
+	},
+	server: {
+		proxy: {
+			"/ws": {
+				target: "http://localhost:8080",
+				changeOrigin: true,
+				ws: true, // 👈 importante para WebSockets
+			},
+		},
+	},
 });
