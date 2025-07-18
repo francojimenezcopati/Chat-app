@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { sendMessage, sendMessageWithAnImage } from "@/api/use.api";
 import React from "react";
+import { getStompClient } from "@/api/use.web-socket";
 
 interface Props {
 	chat: ChatType | null;
@@ -119,6 +120,7 @@ const ChatMessages: React.FC<Props> = ({ chat }) => {
 	}
 
 	const onSendMessage = async () => {
+		console.log("send message http");
 		const imageFile = retrieveImageFile();
 
 		const messageElement = document.getElementById("message") as HTMLInputElement;
@@ -201,6 +203,28 @@ const ChatMessages: React.FC<Props> = ({ chat }) => {
 				}),
 			);
 		}
+	};
+
+	const testWebSocketMessage = () => {
+		console.log("sending message via ws...");
+		const messageElement = document.getElementById("message") as HTMLInputElement;
+		const messageContent = messageElement.value;
+
+		const message: MessageRequest = {
+			username,
+			content: messageContent,
+			chatId: chat?.id!,
+			type: "PERSONAL",
+		};
+
+		const client = getStompClient();
+
+		client.publish({
+			destination: "/app/chat/send-message",
+			body: JSON.stringify(message),
+		});
+
+		// if (chat) setGroupedMessages(groupMessagesByDate(chat.messages));
 	};
 
 	const sendMessageWithImage = async ({
@@ -352,7 +376,7 @@ const ChatMessages: React.FC<Props> = ({ chat }) => {
 						/>
 					</div>
 					<button
-						onClick={() => onSendMessage()}
+						onClick={() => testWebSocketMessage()}
 						className={
 							"bg-blue-400 hover:bg-blue-400/80 w-10 h-10 rounded-lg text-3xl hover:cursor-pointer flex items-center justify-center"
 						}

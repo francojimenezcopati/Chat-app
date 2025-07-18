@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
@@ -22,7 +23,8 @@ public class WebSocketMessageController {
 	private final SimpMessagingTemplate messagingTemplate;
 
 	@MessageMapping("/chat/send-message")
-	public void handleSendMessage(MessageRequest request) {
+	public void handleSendMessage(@Payload MessageRequest request) {
+		System.out.println(request);
 		ResponseDTO response = messageService.createMessage(
 				request.content(),
 				request.username(),
