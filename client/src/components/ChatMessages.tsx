@@ -8,6 +8,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { sendMessage, sendMessageWithAnImage } from "@/api/use.api";
 import React from "react";
 import { getStompClient } from "@/api/use.web-socket";
+import { useChatContext } from "@/context/useChatContext";
 
 interface Props {
 	chat: ChatType | null;
@@ -15,6 +16,7 @@ interface Props {
 
 const ChatMessages: React.FC<Props> = ({ chat }) => {
 	const { username } = useUsernameContext();
+	const { activeChat } = useChatContext();
 
 	const [groupedMessages, setGroupedMessages] = useState<GroupedMessages[] | undefined>(
 		chat ? groupMessagesByDate(chat.messages) : [],
@@ -24,7 +26,6 @@ const ChatMessages: React.FC<Props> = ({ chat }) => {
 	useEffect(() => {
 		if (chat) {
 			setGroupedMessages(groupMessagesByDate(chat.messages));
-			console.log(groupedMessages);
 		}
 	}, [chat]);
 
@@ -205,7 +206,7 @@ const ChatMessages: React.FC<Props> = ({ chat }) => {
 		}
 	};
 
-	const testWebSocketMessage = () => {
+	const sendMessageViaWebSocket = () => {
 		console.log("sending message via ws...");
 		const messageElement = document.getElementById("message") as HTMLInputElement;
 		const messageContent = messageElement.value;
@@ -217,6 +218,9 @@ const ChatMessages: React.FC<Props> = ({ chat }) => {
 			type: "PERSONAL",
 		};
 
+		if (messageContent == "") return;
+		messageElement.value = "";
+
 		const client = getStompClient();
 
 		client.publish({
@@ -224,7 +228,10 @@ const ChatMessages: React.FC<Props> = ({ chat }) => {
 			body: JSON.stringify(message),
 		});
 
-		// if (chat) setGroupedMessages(groupMessagesByDate(chat.messages));
+		if (chat) {
+			console.log("updating grouped messages...");
+			setGroupedMessages(groupMessagesByDate(chat.messages));
+		}
 	};
 
 	const sendMessageWithImage = async ({
@@ -347,7 +354,9 @@ const ChatMessages: React.FC<Props> = ({ chat }) => {
 							type="text"
 							placeholder="Message..."
 							maxLength={200}
-							onKeyDown={(e) => (e.key === "Enter" ? onSendMessage() : null)}
+							onKeyDown={(e) =>
+								e.key === "Enter" ? sendMessageViaWebSocket() : null
+							}
 						/>
 
 						<label
@@ -376,7 +385,7 @@ const ChatMessages: React.FC<Props> = ({ chat }) => {
 						/>
 					</div>
 					<button
-						onClick={() => testWebSocketMessage()}
+						onClick={() => sendMessageViaWebSocket()}
 						className={
 							"bg-blue-400 hover:bg-blue-400/80 w-10 h-10 rounded-lg text-3xl hover:cursor-pointer flex items-center justify-center"
 						}

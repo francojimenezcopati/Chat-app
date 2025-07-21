@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useChatContext } from "../context/useChatContext";
 import type { ChatType } from "../utils/types";
 import ChatIcon from "./ChatIcon";
@@ -7,6 +8,8 @@ interface Props {
 }
 
 const ChatPreview: React.FC<Props> = ({ chat }) => {
+	const { activeChat, setActiveChat } = useChatContext();
+
 	chat.members.sort((left, right) => (left.isAdmin && !right.isAdmin ? -1 : 1));
 	const memberUsernames = chat.members.map((member) => member.user.username);
 
@@ -17,9 +20,15 @@ const ChatPreview: React.FC<Props> = ({ chat }) => {
 		lastMessage = "Start chatting!";
 	}
 
-	const { activeChat, setActiveChat } = useChatContext();
+	const [isActiveChat, setIsActiveChat] = useState(activeChat?.id == chat.id);
 
-	const isActiveChat = activeChat == chat;
+	useEffect(() => {
+		console.log("Chat Preview: ");
+		console.log("Chat: ", chat);
+		console.log("active Chat: ", activeChat);
+		console.log("activeChat?.id == chat.id", activeChat?.id == chat.id);
+		setIsActiveChat(activeChat?.id == chat.id);
+	}, [activeChat, chat]);
 
 	const handleClick = () => {
 		if (!isActiveChat) {

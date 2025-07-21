@@ -76,19 +76,6 @@ const ChatList: React.FC<Props> = ({ chats }) => {
 		setShowModal(false);
 	};
 
-	const subscribeToChatViaWebSockets = () => {
-		connectWebSocket(() => {
-			const client = getStompClient();
-
-			chats.forEach((chat) => {
-				client.subscribe(`/topic/chat/${chat.id}`, (msg) => {
-					const newMessage: MessageInterface = JSON.parse(msg.body);
-					console.log("📨 Mensaje recibido en chat", chat.id, newMessage);
-				});
-			});
-		});
-	};
-
 	return (
 		<div className="flex flex-col items-center justify-start gap-10  w-1/3 h-full rounded-xl">
 			<div className="w-full flex justify-between items-center">
@@ -114,9 +101,6 @@ const ChatList: React.FC<Props> = ({ chats }) => {
 						Create a new chat to begin!
 					</div>
 				)}
-				<button className="p-2 bg-red-500 m-2" onClick={subscribeToChatViaWebSockets}>
-					Connect
-				</button>
 			</div>
 
 			{showModal && (
