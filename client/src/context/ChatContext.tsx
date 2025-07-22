@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ChatContext } from "./useChatContext";
-import type { ChatContextType, ChatType, MessageInterface } from "../utils/types";
+import type { ApiResponse, ChatContextType, ChatType, MessageInterface } from "../utils/types";
 import { getUserChats } from "../api/use.api";
 import { connectWebSocket, getStompClient } from "@/api/use.web-socket";
 import type { Frame } from "@stomp/stompjs";
+import { toast } from "sonner";
 
 interface Props {
 	children: ReactNode;
@@ -24,15 +25,12 @@ export const ChatProvider: React.FC<Props> = ({ children }) => {
 
 			subscribeToChatViaWebSockets(retrievedChats);
 
-			console.log("Active chat: ", activeChat);
 			const previousActiveChatList = retrievedChats.filter(
 				(chat) => chat.id! === activeChat?.id!,
 			);
-			console.log("previousActiveChatList", previousActiveChatList);
 			if (previousActiveChatList.length === 1) {
 				setActiveChat(previousActiveChatList[0]);
 			} else {
-				console.log("setting Active chat to NULL...");
 				setActiveChat(null);
 			}
 		} else {
@@ -45,37 +43,42 @@ export const ChatProvider: React.FC<Props> = ({ children }) => {
 			const client = getStompClient();
 
 			chats.forEach((chat) => {
-				client.subscribe(`/topic/chat/${chat.id}`, (msg: Frame) => {
-					const newMessage: MessageInterface = JSON.parse(msg.body);
-					console.log("📨 Mensaje recibido en chat", chat.id, newMessage);
+				client.subscribe(`/topic/chat/${chat.id}`, (frame: Frame) => {
+					const wsResponse: ApiResponse<MessageInterface | null> = JSON.parse(frame.body);
 
-					console.log("Active chat in subscribe: ", activeChatRef.current);
+					console.log("Response: ", wsResponse);
 
-					setChats((prevState) => {
-						const updatedChats = prevState.map((mappedChat) => {
-							if (mappedChat.id! == chat.id!) {
-								return {
-									...mappedChat,
-									messages: [...mappedChat.messages, newMessage],
-								};
+					if (wsResponse.success) {
+						const newMessage = wsResponse.content!;
+						console.log("📨 Mensaje recibido en chat", chat.id, newMessage);
+
+						setChats((prevState) => {
+							const updatedChats = prevState.map((mappedChat) => {
+								if (mappedChat.id! == chat.id!) {
+									return {
+										...mappedChat,
+										messages: [...mappedChat.messages, newMessage],
+									};
+								}
+
+								return mappedChat;
+							});
+
+							const previousActiveChatList = updatedChats.filter(
+								(chat) => chat.id! === activeChatRef.current?.id!,
+							);
+							if (previousActiveChatList.length === 1) {
+								setActiveChat(previousActiveChatList[0]);
+							} else {
+								setActiveChat(null);
 							}
 
-							return mappedChat;
+							return updatedChats;
 						});
-
-						const previousActiveChatList = updatedChats.filter(
-							(chat) => chat.id! === activeChatRef.current?.id!,
-						);
-						console.log("Previous active chat list", previousActiveChatList);
-						if (previousActiveChatList.length === 1) {
-							setActiveChat(previousActiveChatList[0]);
-						} else {
-							console.log("setting Active chat to NULL...");
-							setActiveChat(null);
-						}
-
-						return updatedChats;
-					});
+					} else {
+						toast.error("Something went wrong with the message");
+						console.error(wsResponse.message);
+					}
 				});
 			});
 		});

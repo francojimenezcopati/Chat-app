@@ -16,15 +16,17 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Base64;
+
 @Controller
 @RequiredArgsConstructor
 public class WebSocketMessageController {
 	private final MessageService messageService;
 	private final SimpMessagingTemplate messagingTemplate;
 
+
 	@MessageMapping("/chat/send-message")
 	public void handleSendMessage(@Payload MessageRequest request) {
-		System.out.println(request);
 		ResponseDTO response = messageService.createMessage(
 				request.content(),
 				request.username(),
@@ -32,30 +34,38 @@ public class WebSocketMessageController {
 				request.type()
 		);
 
-		if (response.success()) {
-			MessageDTO messageDTO = (MessageDTO) response.content();
-
-			// 🔥 BROADCAST a todos los usuarios en el chat
-			String destination = "/topic/chat/" + request.chatId();
-			messagingTemplate.convertAndSend(destination, messageDTO);
-		}
+		// 🔥 BROADCAST a todos los usuarios en el chat
+		String destination = "/topic/chat/" + request.chatId();
+		messagingTemplate.convertAndSend(destination, response);
 	}
 
-	@MessageMapping("/message/send/with-image")
+	@MessageMapping("/chat/send-message/with-image")
 	@SendTo("/topic/messages")
-	public ResponseEntity<ResponseDTO> createMessageWithImage(
-			@RequestPart("message") MessageRequest request,
-			@RequestPart("imageFile") MultipartFile imageFile
+	public void createMessageWithImage(
+			@Payload WSMessageWithImage64Request request
 	) {
+		System.out.println("\n\n\n");
+		System.out.println(request);
+		System.out.println("\n\n\n");
+		String base64 = request.image64();
+
+		// Extraer metadata (tipo mime y data)
+		String[] parts = base64.split(",");
+		String data = parts[1];     // la imagen en sí
+
+		byte[] imageBytes = Base64.getDecoder().decode(data);
+
 		ResponseDTO res = this.messageService.createMessageWithImage(
 				request.content(),
 				request.username(),
 				request.chatId(),
 				request.type(),
-				imageFile
+				imageBytes
 		);
 
-		return new ResponseEntity<>(res, res.status());
+		// 🔥 BROADCAST a todos los usuarios en el chat
+		String destination = "/topic/chat/" + request.chatId();
+		messagingTemplate.convertAndSend(destination, res);
 	}
 
 	//	@MessageMapping("/message/update")

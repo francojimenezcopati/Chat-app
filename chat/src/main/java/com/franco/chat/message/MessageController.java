@@ -32,21 +32,21 @@ public class MessageController {
 		return new ResponseEntity<>(res, res.status());
 	}
 
-	@PostMapping(path = "/with-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	public ResponseEntity<ResponseDTO> createMessageWithImage(
-			@RequestPart("message") MessageRequest request,
-			@RequestPart("imageFile") MultipartFile imageFile
-	) {
-		ResponseDTO res = this.messageService.createMessageWithImage(
-				request.content(),
-				request.username(),
-				request.chatId(),
-				request.type(),
-				imageFile
-		);
-
-		return new ResponseEntity<>(res, res.status());
-	}
+//	@PostMapping(path = "/with-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+//	public ResponseEntity<ResponseDTO> createMessageWithImage(
+//			@RequestPart("message") MessageRequest request,
+//			@RequestPart("imageFile") MultipartFile imageFile
+//	) {
+//		ResponseDTO res = this.messageService.createMessageWithImage(
+//				request.content(),
+//				request.username(),
+//				request.chatId(),
+//				request.type(),
+//				imageFile
+//		);
+//
+//		return new ResponseEntity<>(res, res.status());
+//	}
 
 	@PutMapping(path = "/{messageId}")
 	public ResponseEntity<ResponseDTO> updateMessage(

@@ -21,6 +21,14 @@ export interface MessageRequest {
 	type: MessageType;
 }
 
+export interface MessageWithImage64Request {
+	content: string;
+	username: string;
+	chatId: number;
+	type: MessageType;
+	image64: string;
+}
+
 export interface UsernameContextType {
 	username: string;
 	setUsername: (username: string) => void;

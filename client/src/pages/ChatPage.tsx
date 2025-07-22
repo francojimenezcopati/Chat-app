@@ -24,11 +24,6 @@ const ChatPage: React.FC<Props> = ({ username }) => {
 		asyncUseEffectFn();
 	}, []);
 
-	useEffect(() => {
-		console.log("CAMBIO estado de activeChat");
-		console.log("Estado nuevo: ", activeChat);
-	}, [activeChat]);
-
 	return (
 		<div className="h-full w-full flex justify-center items-center">
 			<div className="flex justify-center items-center h-[97%] w-11/12 gap-5 p-3">

@@ -28,12 +28,12 @@ public class SupabaseService {
 	@Value("${supabase.api.key}")
 	private String supabaseApiKey;
 
-	public String uploadImage(MultipartFile file) {
+	public String uploadImage(byte[] imageBytes) {
 		try {
 			System.out.println();
 			System.out.println("Started uploading the image");
 
-			String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+			String fileName = "image_"+ System.currentTimeMillis() ;
 			String uploadUrl = supabaseUrl + "/storage/v1/object/" + supabaseBucketName + "/" + fileName;
 
 			HttpHeaders headers = new HttpHeaders();
@@ -41,7 +41,7 @@ public class SupabaseService {
 			headers.set("apikey", supabaseApiKey);
 			headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
-			ByteArrayResource fileAsResource = new ByteArrayResource(file.getBytes()) {
+			ByteArrayResource fileAsResource = new ByteArrayResource(imageBytes) {
 				@Override
 				public String getFilename() {
 					return fileName;
@@ -58,7 +58,7 @@ public class SupabaseService {
 			System.out.println("Finish uploading the image");
 
 			return supabaseUrl + "/storage/v1/object/public/" + supabaseBucketName + "/" + fileName;
-		} catch (IOException e) {
+		} catch (Exception e) {
 			throw new RuntimeException("Error uploading image to Supabase", e);
 		}
 	}

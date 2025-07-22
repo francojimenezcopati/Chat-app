@@ -15,7 +15,8 @@ const ChatPreview: React.FC<Props> = ({ chat }) => {
 
 	let lastMessage;
 	if (chat.messages.length > 0) {
-		lastMessage = chat.messages[chat.messages.length - 1].content;
+		const message = chat.messages[chat.messages.length - 1];
+		lastMessage = message.username + ": " + message.content;
 	} else {
 		lastMessage = "Start chatting!";
 	}
@@ -23,10 +24,6 @@ const ChatPreview: React.FC<Props> = ({ chat }) => {
 	const [isActiveChat, setIsActiveChat] = useState(activeChat?.id == chat.id);
 
 	useEffect(() => {
-		console.log("Chat Preview: ");
-		console.log("Chat: ", chat);
-		console.log("active Chat: ", activeChat);
-		console.log("activeChat?.id == chat.id", activeChat?.id == chat.id);
 		setIsActiveChat(activeChat?.id == chat.id);
 	}, [activeChat, chat]);
 
@@ -47,7 +44,7 @@ const ChatPreview: React.FC<Props> = ({ chat }) => {
 			>
 				<ChatIcon usernames={memberUsernames} />
 				<div className="flex flex-col justify-center items-start flex-1 overflow-hidden">
-					<span className="text-lg text-slate-100 truncate w-full">{chat.name}</span>
+					<span className="text-lg text-white truncate w-full">{chat.name}</span>
 					<span className="text-sm text-gray-400 truncate w-full">{lastMessage}</span>
 				</div>
 			</div>

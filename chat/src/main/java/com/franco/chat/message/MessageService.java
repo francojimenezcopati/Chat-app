@@ -83,10 +83,10 @@ public class MessageService {
 			String username,
 			Long chatId,
 			MessageType type,
-			MultipartFile imageFile
+			byte[] imageBytes
 	) {
 		try {
-			String imageUrl = this.supabaseService.uploadImage(imageFile);
+			String imageUrl = this.supabaseService.uploadImage(imageBytes);
 
 			Optional<AppUser> optionalAppUser = this.appUserRepository.findByUsernameIgnoreCase(username);
 			Optional<Chat> optionalChat = this.chatRepository.findById(chatId);

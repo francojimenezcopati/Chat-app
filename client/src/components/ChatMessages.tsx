@@ -1,4 +1,10 @@
-import type { ChatType, GroupedMessages, MessageInterface, MessageRequest } from "../utils/types";
+import type {
+	ChatType,
+	GroupedMessages,
+	MessageInterface,
+	MessageRequest,
+	MessageWithImage64Request,
+} from "../utils/types";
 import Message from "../components/Message";
 
 import { useUsernameContext } from "@/context/useUsernameContext";
@@ -8,7 +14,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { sendMessage, sendMessageWithAnImage } from "@/api/use.api";
 import React from "react";
 import { getStompClient } from "@/api/use.web-socket";
-import { useChatContext } from "@/context/useChatContext";
 
 interface Props {
 	chat: ChatType | null;
@@ -16,7 +21,6 @@ interface Props {
 
 const ChatMessages: React.FC<Props> = ({ chat }) => {
 	const { username } = useUsernameContext();
-	const { activeChat } = useChatContext();
 
 	const [groupedMessages, setGroupedMessages] = useState<GroupedMessages[] | undefined>(
 		chat ? groupMessagesByDate(chat.messages) : [],
@@ -30,8 +34,19 @@ const ChatMessages: React.FC<Props> = ({ chat }) => {
 	}, [chat]);
 
 	useEffect(() => {
-		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+		messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
 	}, [groupedMessages]);
+
+	const [previousActiveChat, setPreviousActiveChat] = useState<ChatType | null>(null);
+	useEffect(() => {
+		if (chat != null && chat != previousActiveChat) {
+			showImagePreview(false);
+			// console.log("CAMBIO el CHAT");
+			// console.log("Estado previo: ", previousActiveChat);
+			// console.log("Estado actual: ", chat);
+			setPreviousActiveChat(chat);
+		}
+	}, [chat]);
 
 	function groupMessagesByDate(messages: MessageInterface[]) {
 		const grouped: GroupedMessages[] = [];
@@ -122,7 +137,6 @@ const ChatMessages: React.FC<Props> = ({ chat }) => {
 
 	const onSendMessage = async () => {
 		console.log("send message http");
-		const imageFile = retrieveImageFile();
 
 		const messageElement = document.getElementById("message") as HTMLInputElement;
 		const messageContent = messageElement.value;
@@ -134,6 +148,7 @@ const ChatMessages: React.FC<Props> = ({ chat }) => {
 			type: "PERSONAL",
 		};
 
+		const imageFile = retrieveImageFile();
 		if (imageFile != null) {
 			messageElement.value = "";
 			sendMessageWithImage({ imageFile, message });
@@ -207,7 +222,6 @@ const ChatMessages: React.FC<Props> = ({ chat }) => {
 	};
 
 	const sendMessageViaWebSocket = () => {
-		console.log("sending message via ws...");
 		const messageElement = document.getElementById("message") as HTMLInputElement;
 		const messageContent = messageElement.value;
 
@@ -218,8 +232,18 @@ const ChatMessages: React.FC<Props> = ({ chat }) => {
 			type: "PERSONAL",
 		};
 
+		const imageFile = retrieveImageFile();
+		if (imageFile != null) {
+			console.log("with image via ws");
+			messageElement.value = "";
+			sendMessageWithImage({ imageFile, message });
+			return;
+		}
+
 		if (messageContent == "") return;
 		messageElement.value = "";
+
+		console.log("sending message via ws...");
 
 		const client = getStompClient();
 
@@ -228,10 +252,10 @@ const ChatMessages: React.FC<Props> = ({ chat }) => {
 			body: JSON.stringify(message),
 		});
 
-		if (chat) {
-			console.log("updating grouped messages...");
-			setGroupedMessages(groupMessagesByDate(chat.messages));
-		}
+		// if (chat) {
+		// 	console.log("updating grouped messages...");
+		// 	setGroupedMessages(groupMessagesByDate(chat.messages));
+		// }
 	};
 
 	const sendMessageWithImage = async ({
@@ -241,25 +265,34 @@ const ChatMessages: React.FC<Props> = ({ chat }) => {
 		imageFile: File;
 		message: MessageRequest;
 	}) => {
-		const messageDTO = await sendMessageWithAnImage({ message, imageFile });
+		console.log("inside the send image function");
+		const client = getStompClient();
 
-		if (messageDTO != null) {
-			setGroupedMessages((prevState) => {
-				return prevState!.map((group) => {
-					if (group.date === getFormattedDate(new Date())) {
-						const todayMessages: MessageInterface[] = group.messages;
+		const reader = new FileReader();
 
-						const updatedMessages = [...todayMessages, messageDTO];
+		reader.onload = () => {
+			console.log("onLoad del reader");
+			const base64Image = reader.result; // contiene "data:image/jpeg;base64,..."
+			console.log("base64 image: ", base64Image);
 
-						return { ...group, messages: updatedMessages };
-					}
-					return group;
-				});
+			const msgWithImgRequest: MessageWithImage64Request = {
+				...message,
+				image64: base64Image as string,
+			};
+
+			console.log("Request : ", msgWithImgRequest);
+
+			client.publish({
+				destination: "/app/chat/send-message/with-image",
+				body: JSON.stringify(msgWithImgRequest),
 			});
-			chat?.messages.push(messageDTO);
-		}
 
-		showImagePreview(false);
+			console.log("After publish");
+
+			showImagePreview(false);
+		};
+
+		reader.readAsDataURL(imageFile); // codifica la imagen
 	};
 
 	const retrieveImageFile = (): File | null => {
@@ -276,11 +309,14 @@ const ChatMessages: React.FC<Props> = ({ chat }) => {
 	};
 
 	const onImageChange = () => {
+		console.log("image change");
 		const imageFile = retrieveImageFile();
 		if (imageFile == null) return;
+		console.log(imageFile.name);
 
 		const imgPreviewElement = document.getElementById("imgPreview") as HTMLImageElement;
 		imgPreviewElement.src = URL.createObjectURL(imageFile);
+		console.log(imgPreviewElement.src);
 
 		showImagePreview(true);
 	};
@@ -288,13 +324,13 @@ const ChatMessages: React.FC<Props> = ({ chat }) => {
 	const showImagePreview = (show: boolean) => {
 		const imgPreviewDiv = document.getElementById("imgPreviewDiv") as HTMLDivElement;
 		if (show) {
-			imgPreviewDiv.className = imgPreviewDiv.className.replace("hidden", "");
+			imgPreviewDiv.classList.remove("hidden");
 		} else {
 			const imageInput = document.getElementById("imageFile") as HTMLInputElement;
 			imageInput.value = "";
 			imageInput.src = "nothing";
 
-			imgPreviewDiv.className = imgPreviewDiv.className + " hidden";
+			imgPreviewDiv.classList.add("hidden");
 		}
 		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
 	};
