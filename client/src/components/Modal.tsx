@@ -36,7 +36,7 @@ const Modal: React.FC<Props> = ({
 
 	return (
 		<div
-			className="fixed w-screen h-screen left-0 top-0 bg-slate-800/80 z-20 "
+			className="fixed min-w-screen min-h-screen left-0 top-0 bg-slate-800/80 z-20 "
 			onClick={(e) => handleClickOutside(e)}
 		>
 			<div

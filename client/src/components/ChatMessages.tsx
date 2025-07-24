@@ -4,6 +4,7 @@ import type {
 	MessageInterface,
 	MessageRequest,
 	MessageWithImage64Request,
+	MessageWithImageUrlRequest,
 } from "../utils/types";
 import Message from "../components/Message";
 
@@ -11,9 +12,10 @@ import { useUsernameContext } from "@/context/useUsernameContext";
 import { useEffect, useRef, useState } from "react";
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { sendMessage, sendMessageWithAnImage } from "@/api/use.api";
+import { sendMessage, sendMessageWithAnImage, uploadMessageImage } from "@/api/use.api";
 import React from "react";
-import { getStompClient } from "@/api/use.web-socket";
+import { getStompClient, sendMessageViaWS, sendMessageWithImageUrl } from "@/api/use.web-socket";
+import { useSpinner } from "@/context/useSpinner";
 
 interface Props {
 	chat: ChatType | null;
@@ -21,6 +23,7 @@ interface Props {
 
 const ChatMessages: React.FC<Props> = ({ chat }) => {
 	const { username } = useUsernameContext();
+	const { showSpinner } = useSpinner();
 
 	const [groupedMessages, setGroupedMessages] = useState<GroupedMessages[] | undefined>(
 		chat ? groupMessagesByDate(chat.messages) : [],
@@ -135,93 +138,7 @@ const ChatMessages: React.FC<Props> = ({ chat }) => {
 		return `${date.getDate()} de ${months[date.getMonth()]} del ${date.getFullYear()}`;
 	}
 
-	const onSendMessage = async () => {
-		console.log("send message http");
-
-		const messageElement = document.getElementById("message") as HTMLInputElement;
-		const messageContent = messageElement.value;
-
-		const message: MessageRequest = {
-			username,
-			content: messageContent,
-			chatId: chat?.id!,
-			type: "PERSONAL",
-		};
-
-		const imageFile = retrieveImageFile();
-		if (imageFile != null) {
-			messageElement.value = "";
-			sendMessageWithImage({ imageFile, message });
-			return;
-		}
-
-		if (messageContent == "") return;
-		messageElement.value = "";
-
-		const provisionalMessage: MessageInterface = {
-			fake: true,
-			content: messageContent,
-			username,
-			createdAt: new Date().toString(),
-			type: "PERSONAL",
-			imageUrl: null,
-		};
-
-		setGroupedMessages((prevState) =>
-			prevState!.map((group) => ({
-				...group,
-				messages:
-					group.date === getFormattedDate(new Date())
-						? [...group.messages, provisionalMessage]
-						: group.messages,
-			})),
-		);
-
-		const messageDTO = await sendMessage({ message });
-
-		if (messageDTO != null) {
-			setGroupedMessages((prevState) => {
-				return prevState!.map((group) => {
-					if (group.date === getFormattedDate(new Date())) {
-						const todayMessages: MessageInterface[] = group.messages;
-
-						const provisionalMessageIndex = todayMessages.findIndex(
-							(msg) => msg.content == messageContent && msg.fake == true,
-						);
-
-						const updatedMessages = [
-							...todayMessages.slice(0, provisionalMessageIndex),
-							messageDTO,
-							...todayMessages.slice(provisionalMessageIndex + 1),
-						];
-
-						return { ...group, messages: updatedMessages };
-					}
-					return group;
-				});
-			});
-			chat?.messages.push(messageDTO);
-		} else {
-			setGroupedMessages((prevState) =>
-				prevState!.map((group) => {
-					if (group.date === getFormattedDate(new Date())) {
-						const todayMessages: MessageInterface[] = group.messages;
-
-						const rollBackMessages = todayMessages.filter(
-							(msg) => msg.content != messageContent || msg.fake != true,
-						);
-						return {
-							...group,
-							messages: rollBackMessages,
-						};
-					}
-					return group;
-				}),
-			);
-		}
-	};
-
-	const sendMessageViaWebSocket = () => {
+	const sendMessage = () => {
 		const messageElement = document.getElementById("message") as HTMLInputElement;
 		const messageContent = messageElement.value;
 
@@ -245,17 +162,7 @@ const ChatMessages: React.FC<Props> = ({ chat }) => {
 
 		console.log("sending message via ws...");
 
-		const client = getStompClient();
-
-		client.publish({
-			destination: "/app/chat/send-message",
-			body: JSON.stringify(message),
-		});
-
-		// if (chat) {
-		// 	console.log("updating grouped messages...");
-		// 	setGroupedMessages(groupMessagesByDate(chat.messages));
-		// }
+		sendMessageViaWS({ message });
 	};
 
 	const sendMessageWithImage = async ({
@@ -265,34 +172,20 @@ const ChatMessages: React.FC<Props> = ({ chat }) => {
 		imageFile: File;
 		message: MessageRequest;
 	}) => {
-		console.log("inside the send image function");
-		const client = getStompClient();
+		showSpinner(true);
+		const imageUrl = await uploadMessageImage({ imageFile });
+		showSpinner(false);
 
-		const reader = new FileReader();
-
-		reader.onload = () => {
-			console.log("onLoad del reader");
-			const base64Image = reader.result; // contiene "data:image/jpeg;base64,..."
-			console.log("base64 image: ", base64Image);
-
-			const msgWithImgRequest: MessageWithImage64Request = {
+		if (imageUrl) {
+			const messageWithImageUrl: MessageWithImageUrlRequest = {
 				...message,
-				image64: base64Image as string,
+				imageUrl,
 			};
 
-			console.log("Request : ", msgWithImgRequest);
+			sendMessageWithImageUrl({ messageWithImageUrl });
+		}
 
-			client.publish({
-				destination: "/app/chat/send-message/with-image",
-				body: JSON.stringify(msgWithImgRequest),
-			});
-
-			console.log("After publish");
-
-			showImagePreview(false);
-		};
-
-		reader.readAsDataURL(imageFile); // codifica la imagen
+		showImagePreview(false);
 	};
 
 	const retrieveImageFile = (): File | null => {
@@ -390,9 +283,7 @@ const ChatMessages: React.FC<Props> = ({ chat }) => {
 							type="text"
 							placeholder="Message..."
 							maxLength={200}
-							onKeyDown={(e) =>
-								e.key === "Enter" ? sendMessageViaWebSocket() : null
-							}
+							onKeyDown={(e) => (e.key === "Enter" ? sendMessage() : null)}
 						/>
 
 						<label
@@ -421,7 +312,7 @@ const ChatMessages: React.FC<Props> = ({ chat }) => {
 						/>
 					</div>
 					<button
-						onClick={() => sendMessageViaWebSocket()}
+						onClick={() => sendMessage()}
 						className={
 							"bg-blue-400 hover:bg-blue-400/80 w-10 h-10 rounded-lg text-3xl hover:cursor-pointer flex items-center justify-center"
 						}

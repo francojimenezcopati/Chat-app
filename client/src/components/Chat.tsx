@@ -16,6 +16,19 @@ import MultipleSelector, {
 	type Option,
 	type MultipleSelectorRef,
 } from "@/components/ui/multiple-selector";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuPortal,
+	DropdownMenuSeparator,
+	DropdownMenuShortcut,
+	DropdownMenuSub,
+	DropdownMenuSubContent,
+	DropdownMenuSubTrigger,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 import { toast } from "sonner";
 import Modal from "./Modal";
@@ -78,6 +91,8 @@ const Chat: React.FC<Props> = ({ chat }) => {
 		}
 	}, [sync, showManageMembersModal]);
 
+	// Click en TRIGGERS de MODALES vvv
+
 	const handleManageMembersClick = () => {
 		let options: Option[] = [];
 		memberUsernames?.forEach((memberUsername) => {
@@ -118,6 +133,8 @@ const Chat: React.FC<Props> = ({ chat }) => {
 			}
 		});
 	};
+
+	// Click en Confirmar de MODALES vvv
 
 	const handleConfirmExitChat = async () => {
 		showSpinner(true);
@@ -199,13 +216,27 @@ const Chat: React.FC<Props> = ({ chat }) => {
 	};
 
 	return (
-		<div className="relative flex flex-col items-center justify-start bg-gradient-to-t from-[#292C35] via-80% via-[#363742] to-[#25262f] w-2/3 h-full rounded-b-xl">
+		<div className="w-full sm:w-2/3 relative flex flex-col items-center justify-start bg-gradient-to-t from-[#292C35] via-80% via-[#363742] to-[#25262f]  h-full rounded-b-xl">
 			{chat != null ? (
 				<>
 					{/* TOP BAR */}
 
 					<div className="w-full flex justify-between items-center py-2 drop-shadow-xl drop-shadow-gray-700 shadow-sm shadow-gray-800/50">
-						<div className="flex items-center gap-5 ml-3 ">
+						<div className="ml-3 mr-2 sm:hidden min-w-6">
+							<Tooltip>
+								<TooltipTrigger>
+									<img
+										className="w-9 h-9 hover:cursor-pointer"
+										src="back-arrow.svg"
+										onClick={() => console.log("go back")}
+									/>
+								</TooltipTrigger>
+								<TooltipContent>
+									<p>Go to chats</p>
+								</TooltipContent>
+							</Tooltip>
+						</div>
+						<div className="flex items-center gap-4 ml-3 ">
 							<ChatIcon usernames={memberUsernames!} />
 							<div className="flex flex-col justify-center items-start ">
 								<span className="text-lg text-slate-100">{chat.name}</span>
@@ -214,7 +245,60 @@ const Chat: React.FC<Props> = ({ chat }) => {
 								</span>
 							</div>
 						</div>
-						<div className="flex items-center justify-end gap-3 mr-3 min-w-[140px]">
+
+						<div className="sm:hidden flex items-center justify-end mr-3 min-w-fit">
+							<DropdownMenu modal={false}>
+								<DropdownMenuTrigger>Open</DropdownMenuTrigger>
+								<DropdownMenuContent align="end">
+									<DropdownMenuItem
+										className="hover:cursor-pointer"
+										onClick={handleEditChatNameClick}
+									>
+										<img
+											className="w-6 h-6 hover:cursor-pointer"
+											src="edit-chat.svg"
+										/>
+										Edit chat name
+									</DropdownMenuItem>
+									<DropdownMenuItem
+										className="hover:cursor-pointer"
+										onClick={handleManageMembersClick}
+									>
+										<img
+											className="w-6 h-6 hover:cursor-pointer"
+											src="manage-members.svg"
+										/>
+										Manage members
+									</DropdownMenuItem>
+									<DropdownMenuItem
+										className="hover:cursor-pointer"
+										onClick={handleAddMembersClick}
+									>
+										<img
+											className="w-6 h-6 hover:cursor-pointer"
+											src="add-members.svg"
+										/>
+										Add new members
+									</DropdownMenuItem>
+									<ConfirmModal onConfirm={handleConfirmExitChat}>
+										<DropdownMenuItem
+											className="hover:cursor-pointer"
+											// onClick={(e) => {
+											// 	e.stopPropagation();
+											// }}
+										>
+											<img
+												className="w-6 h-6 hover:cursor-pointer"
+												src="exit-chat.svg"
+											/>
+											Exit chat
+										</DropdownMenuItem>
+									</ConfirmModal>
+								</DropdownMenuContent>
+							</DropdownMenu>
+						</div>
+
+						<div className="hidden sm:flex items-center justify-end gap-3 mr-3 min-w-[140px]">
 							{isCurrentUserChatAdmin && (
 								<>
 									<Tooltip>
@@ -341,7 +425,7 @@ const Chat: React.FC<Props> = ({ chat }) => {
 					onlyCloseButton
 				>
 					<>
-						<div className="bg-gray-800 rounded-xl border  h-full max-h-[70vh] min-w-96 flex flex-col items-center justify-start p-2 overflow-y-auto custom-scroll">
+						<div className="bg-gray-800 rounded-xl border  h-full max-h-[70vh]  flex flex-col items-center justify-start p-2 overflow-y-auto custom-scroll">
 							{chat?.members.map((membership, index) => (
 								<ListItem chatMembership={membership} key={index} />
 							))}

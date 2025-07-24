@@ -77,7 +77,7 @@ const ChatList: React.FC<Props> = ({ chats }) => {
 	};
 
 	return (
-		<div className="flex flex-col items-center justify-start gap-10  w-1/3 h-full rounded-xl">
+		<div className="w-full sm:w-1/3 flex flex-col items-center justify-start gap-10 h-full rounded-xl ">
 			<div className="w-full flex justify-between items-center">
 				<span className="text-2xl text-slate-100">Chats</span>
 				<Tooltip>

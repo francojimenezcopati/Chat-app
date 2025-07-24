@@ -17,20 +17,20 @@ const ChatIcon: React.FC<Props> = ({ usernames }) => {
 		)}&background=random&rounded=true&size=40`;
 
 	return (
-		<div className="relative w-12 h-12">
+		<div className="relative w-12 h-12 ">
 			<img
 				src={getAvatarUrl(name1)}
 				alt={name1}
 				className={
-					"absolute top-0 left-0 rounded-full outline-1 outline-blue-300 shadow-xs shadow-blue-300 " +
-					(showTwoIcons ? "w-8 h-8" : "w-12 h-12")
+					"absolute top-0 left-0 aspect-square rounded-full outline-1 outline-blue-300 shadow-xs shadow-blue-300 " +
+					(showTwoIcons ? "w-8 " : "w-12 ")
 				}
 			/>
 			{showTwoIcons && (
 				<img
 					src={getAvatarUrl(name2)}
 					alt={name2}
-					className="absolute bottom-0 right-0 w-8 h-8 rounded-full outline-1
+					className="absolute bottom-0 right-0 aspect-square w-8 rounded-full outline-1
 							outline-blue-300
 							shadow-xs
 							shadow-blue-300

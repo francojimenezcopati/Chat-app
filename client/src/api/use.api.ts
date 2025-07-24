@@ -146,6 +146,73 @@ export const sendMessage = async ({
 	}
 };
 
+export const uploadMessageImage = async ({
+	imageFile,
+}: {
+	imageFile: File;
+}): Promise<string | null> => {
+	try {
+		const multipartFormData = new FormData();
+		multipartFormData.append("imageFile", imageFile);
+
+		const rawRes = await fetch(API_URLS.MESSAGE + "/upload-image", {
+			method: METHODS.POST,
+			body: multipartFormData,
+		});
+		const res: ApiResponse<string | null> = await rawRes.json();
+
+		if (res.success && res.content) {
+			console.log(res.message);
+		} else {
+			console.error(res.message);
+			toast.error("Something went wrong whit the message image!");
+		}
+
+		return res.content;
+	} catch (e) {
+		console.error((e as Error).message);
+		toast.error("Something went wrong whit the message image!");
+		return null;
+	}
+};
+
+export const sendMessageWithAnImage = async ({
+	message,
+	imageFile,
+}: {
+	message: MessageRequest;
+	imageFile: File;
+}): Promise<MessageInterface | null> => {
+	const multipartFormData = new FormData();
+	multipartFormData.append("imageFile", imageFile);
+	multipartFormData.append(
+		"message",
+		new Blob([JSON.stringify(message)], { type: "application/json" }),
+	);
+
+	try {
+		const rawRes = await fetch(API_URLS.MESSAGE + "/with-image", {
+			method: METHODS.POST,
+			body: multipartFormData,
+		});
+		const res: ApiResponse<MessageInterface | null> = await rawRes.json();
+
+		if (res.success && res.content) {
+			console.log(res.message);
+		} else {
+			console.error(res.message);
+			toast.error("Something went wrong whit the message!");
+		}
+
+		return res.content;
+	} catch (e) {
+		console.error((e as Error).message);
+		console.error(e);
+		toast.error("Something went wrong whit the message!");
+		return null;
+	}
+};
+
 export const addUsersToChat = async ({
 	usernames,
 	chatId,
@@ -250,42 +317,5 @@ export const editChatName = async ({ name, chatId }: EditChatNameRequest): Promi
 		console.error((e as Error).message);
 		toast.error("Something went wrong!");
 		return false;
-	}
-};
-
-export const sendMessageWithAnImage = async ({
-	message,
-	imageFile,
-}: {
-	message: MessageRequest;
-	imageFile: File;
-}): Promise<MessageInterface | null> => {
-	const multipartFormData = new FormData();
-	multipartFormData.append("imageFile", imageFile);
-	multipartFormData.append(
-		"message",
-		new Blob([JSON.stringify(message)], { type: "application/json" }),
-	);
-
-	try {
-		const rawRes = await fetch(API_URLS.MESSAGE + "/with-image", {
-			method: METHODS.POST,
-			body: multipartFormData,
-		});
-		const res: ApiResponse<MessageInterface | null> = await rawRes.json();
-
-		if (res.success && res.content) {
-			console.log(res.message);
-		} else {
-			console.error(res.message);
-			toast.error("Something went wrong whit the message!");
-		}
-
-		return res.content;
-	} catch (e) {
-		console.error((e as Error).message);
-		console.error(e);
-		toast.error("Something went wrong whit the message!");
-		return null;
 	}
 };

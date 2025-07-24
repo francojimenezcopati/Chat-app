@@ -21,12 +21,12 @@ export interface MessageRequest {
 	type: MessageType;
 }
 
-export interface MessageWithImage64Request {
+export interface MessageWithImageUrlRequest {
 	content: string;
 	username: string;
 	chatId: number;
 	type: MessageType;
-	image64: string;
+	imageUrl: string;
 }
 
 export interface UsernameContextType {

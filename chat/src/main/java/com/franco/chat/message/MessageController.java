@@ -1,6 +1,7 @@
 package com.franco.chat.message;
 
 import com.franco.chat.ResponseDTO;
+import com.franco.chat.SupabaseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping(path = "api/v1/message")
 public class MessageController {
 	private final MessageService messageService;
+	private final SupabaseService supabaseService;
 
 	@GetMapping
 	public ResponseEntity<ResponseDTO> getAll() {
@@ -32,21 +34,17 @@ public class MessageController {
 		return new ResponseEntity<>(res, res.status());
 	}
 
-//	@PostMapping(path = "/with-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-//	public ResponseEntity<ResponseDTO> createMessageWithImage(
-//			@RequestPart("message") MessageRequest request,
-//			@RequestPart("imageFile") MultipartFile imageFile
-//	) {
-//		ResponseDTO res = this.messageService.createMessageWithImage(
-//				request.content(),
-//				request.username(),
-//				request.chatId(),
-//				request.type(),
-//				imageFile
-//		);
-//
-//		return new ResponseEntity<>(res, res.status());
-//	}
+	@PostMapping(path = "/upload-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<ResponseDTO> uploadMessageImage(
+			@RequestPart("imageFile") MultipartFile imageFile
+	) {
+		System.out.println("\n\n"+ imageFile +"\n\n");
+		ResponseDTO res = this.supabaseService.uploadImage(
+				imageFile
+		);
+
+		return new ResponseEntity<>(res, res.status());
+	}
 
 	@PutMapping(path = "/{messageId}")
 	public ResponseEntity<ResponseDTO> updateMessage(

@@ -82,12 +82,17 @@ const ListItem: React.FC<Props> = ({ chatMembership }) => {
 								"&background=random&rounded=true&size=40"
 							}
 						/>
-						<div className="flex items-center justify-start gap-1">
-							{chatMembership.user.username}
+						<div className="flex items-center justify-start gap-1 max-w-36">
+							<span className="truncate max-w-32">
+								{chatMembership.user.username}
+							</span>
 							{chatMembership.isAdmin && (
 								<Tooltip>
 									<TooltipTrigger className="flex justify-center items-center">
-										<img src="admin.svg" className="w-5 h-5" />
+										<img
+											src="admin.svg"
+											className="w-5 min-w-5 aspect-square"
+										/>
 									</TooltipTrigger>
 									<TooltipContent>
 										<p>Admin</p>
@@ -96,7 +101,7 @@ const ListItem: React.FC<Props> = ({ chatMembership }) => {
 							)}
 						</div>
 					</div>
-					<div className="flex justify-end items-center gap-3">
+					<div className="flex justify-end items-center gap-3 min-w-14">
 						{!chatMembership.isAdmin && (
 							<Tooltip>
 								<ConfirmModal onConfirm={onGiveAdminClick}>

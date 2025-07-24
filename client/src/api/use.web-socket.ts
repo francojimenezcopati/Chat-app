@@ -1,40 +1,41 @@
 import { CONNECT_WEB_SOCKET_URL } from "@/utils/consts";
+import type { MessageRequest, MessageWithImageUrlRequest } from "@/utils/types";
 import { Client } from "@stomp/stompjs";
 
 let stompClient: Client;
 
 export const connectWebSocket = (onConnected: () => void) => {
 	console.log("trying to connect...");
-	stompClient = new Client({
-		brokerURL: CONNECT_WEB_SOCKET_URL,
-		onConnect: () => {
-			console.log("✅ WebSocket connected");
-			onConnected();
-		},
-		reconnectDelay: 0,
+	if (stompClient == undefined) {
+		stompClient = new Client({
+			brokerURL: CONNECT_WEB_SOCKET_URL,
+			onConnect: () => {
+				console.log("✅ WebSocket connected");
+				onConnected();
+			},
+			reconnectDelay: 0,
+		});
+
+		stompClient.activate();
+	}
+};
+
+export const sendMessageViaWS = ({ message }: { message: MessageRequest }) => {
+	stompClient.publish({
+		destination: "/app/chat/send-message",
+		body: JSON.stringify(message),
 	});
+};
 
-	stompClient.activate();
-
-	// const socket = new SockJS("ws://localhost:8080/ws");
-	// stompClient = Stomp.overWS("ws://localhost:8080/ws");
-
-	// const socket = new SockJS("http://localhost:8080/ws");
-	// stompClient = Stomp.over(socket);
-	//
-	// stompClient.connect(
-	// 	{},
-	// 	() => {
-	// 		console.log("✅ WebSocket connected");
-	// 		onConnected();
-	// 	},
-	// );
-
-	// const socket = new WebSocket("http://localhost:8080/ws");
-	// socket.onopen = () => {
-	// 	console.log("✅ WebSocket connected");
-	// 	onConnected();
-	// };
+export const sendMessageWithImageUrl = ({
+	messageWithImageUrl,
+}: {
+	messageWithImageUrl: MessageWithImageUrlRequest;
+}) => {
+	stompClient.publish({
+		destination: "/app/chat/send-message/with-image",
+		body: JSON.stringify(messageWithImageUrl),
+	});
 };
 
 export const getStompClient = () => stompClient;
