@@ -20,6 +20,7 @@ export const ChatProvider: React.FC<Props> = ({ children }) => {
 	const initializeUserChats = async ({ username }: { username: string }) => {
 		console.log("initializing...");
 		const retrievedChats = await getUserChats({ username });
+		console.log(retrievedChats);
 		if (retrievedChats && retrievedChats.length > 0) {
 			setChats(retrievedChats);
 

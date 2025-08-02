@@ -1,5 +1,5 @@
 import { useSpinner } from "@/context/useSpinner";
-import { createUser } from "../api/use.api";
+import { createUser, getAllUsers } from "../api/use.api";
 import { useUsernameContext } from "../context/useUsernameContext";
 import "./test.css";
 
@@ -13,9 +13,26 @@ const WelcomePage = () => {
 
 		showSpinner(true);
 		const success = await createUser({ username });
-		showSpinner(false);
+		// const success = true;
 		if (success) {
-			setUsername(username.toLowerCase());
+			const allUsernames = await getAllUsers();
+			showSpinner(false);
+			if (allUsernames !== null) {
+				if (allUsernames.length > 0) {
+					allUsernames.forEach((user) => {
+						if (username.toLowerCase() === user.username.toLowerCase()) {
+							console.log("Match found => " + user.username);
+							setUsername(user.username);
+						} else {
+							console.log("Username: " + user.username);
+						}
+					});
+				} else {
+					setUsername(username);
+				}
+			}
+		} else {
+			showSpinner(false);
 		}
 	};
 

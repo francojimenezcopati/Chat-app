@@ -37,7 +37,8 @@ const ChatList: React.FC<Props> = ({ chats }) => {
 					options.push({
 						label: user.username,
 						value: user.username,
-						disable: user.username.toLowerCase() == username ? true : false,
+						disable:
+							user.username.toLowerCase() == username.toLowerCase() ? true : false,
 					});
 				});
 

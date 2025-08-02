@@ -1,6 +1,6 @@
 const Footer = () => {
 	return (
-		<footer className="z-50 fixed left-4 bottom-4 text-left bg-black/70 px-6 py-2 rounded-full opacity-95 backdrop-blur-sm flex items-center">
+		<footer className="hidden sm:flex z-50 fixed left-4 bottom-4 text-left bg-black/70 px-6 py-2 rounded-full opacity-95 backdrop-blur-sm items-center">
 			<div className="bg-[#0077b5] w-[30px] h-[30px] flex items-center justify-center rounded-[4px] mr-2">
 				<svg
 					xmlns="http://www.w3.org/2000/svg"

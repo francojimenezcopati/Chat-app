@@ -16,7 +16,11 @@ const ChatPreview: React.FC<Props> = ({ chat }) => {
 	let lastMessage;
 	if (chat.messages.length > 0) {
 		const message = chat.messages[chat.messages.length - 1];
-		lastMessage = message.username + ": " + message.content;
+		if (message.type == "PERSONAL") {
+			lastMessage = message.username + ": " + message.content;
+		} else {
+			lastMessage = message.content;
+		}
 	} else {
 		lastMessage = "Start chatting!";
 	}

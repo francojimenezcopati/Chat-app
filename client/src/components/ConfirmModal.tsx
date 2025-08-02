@@ -27,7 +27,7 @@ const ConfirmModal: React.FC<Props> = ({ onConfirm, children }) => {
 				<AlertDialogFooter>
 					<AlertDialogCancel className="hover:cursor-pointer">Cancel</AlertDialogCancel>
 					<AlertDialogAction className="hover:cursor-pointer" onClick={onConfirm}>
-						Continue
+						Confirm
 					</AlertDialogAction>
 				</AlertDialogFooter>
 			</AlertDialogContent>

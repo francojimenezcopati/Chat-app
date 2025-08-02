@@ -20,13 +20,6 @@ import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
-	DropdownMenuLabel,
-	DropdownMenuPortal,
-	DropdownMenuSeparator,
-	DropdownMenuShortcut,
-	DropdownMenuSub,
-	DropdownMenuSubContent,
-	DropdownMenuSubTrigger,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -99,7 +92,7 @@ const Chat: React.FC<Props> = ({ chat }) => {
 			options.push({
 				label: memberUsername,
 				value: memberUsername,
-				disable: memberUsername.toLowerCase() == username ? true : false,
+				disable: memberUsername.toLowerCase() == username.toLowerCase() ? true : false,
 			});
 		});
 
@@ -122,7 +115,10 @@ const Chat: React.FC<Props> = ({ chat }) => {
 						options.push({
 							label: user.username,
 							value: user.username,
-							disable: user.username.toLowerCase() == username ? true : false,
+							disable:
+								user.username.toLowerCase() == username.toLowerCase()
+									? true
+									: false,
 						});
 					}
 				});
@@ -138,9 +134,9 @@ const Chat: React.FC<Props> = ({ chat }) => {
 
 	const handleConfirmExitChat = async () => {
 		showSpinner(true);
-		const success = await removeMember({ username, chatId: chat!.id! });
+		const success = await removeMember({ username: username.toLowerCase(), chatId: chat!.id! });
 		if (success) {
-			await initializeUserChats({ username });
+			await initializeUserChats({ username: username.toLowerCase() });
 
 			const generalMessage: MessageRequest = {
 				username,
@@ -246,9 +242,16 @@ const Chat: React.FC<Props> = ({ chat }) => {
 							</div>
 						</div>
 
-						<div className="sm:hidden flex items-center justify-end mr-3 min-w-fit">
+						<div className="sm:hidden flex items-center justify-end mr-2 min-w-fit">
 							<DropdownMenu modal={false}>
-								<DropdownMenuTrigger>Open</DropdownMenuTrigger>
+								<DropdownMenuTrigger>
+									<div className="rounded-sm bg-gray-700">
+										<img
+											className="w-7 aspect-square mt-2 p-1 hover:cursor-pointer"
+											src="vertical-dots.svg"
+										/>
+									</div>
+								</DropdownMenuTrigger>
 								<DropdownMenuContent align="end">
 									<DropdownMenuItem
 										className="hover:cursor-pointer"
@@ -282,10 +285,10 @@ const Chat: React.FC<Props> = ({ chat }) => {
 									</DropdownMenuItem>
 									<ConfirmModal onConfirm={handleConfirmExitChat}>
 										<DropdownMenuItem
+											onSelect={(e) => {
+												e.preventDefault();
+											}}
 											className="hover:cursor-pointer"
-											// onClick={(e) => {
-											// 	e.stopPropagation();
-											// }}
 										>
 											<img
 												className="w-6 h-6 hover:cursor-pointer"

@@ -3,7 +3,6 @@ import type {
 	GroupedMessages,
 	MessageInterface,
 	MessageRequest,
-	MessageWithImage64Request,
 	MessageWithImageUrlRequest,
 } from "../utils/types";
 import Message from "../components/Message";
@@ -23,6 +22,7 @@ interface Props {
 
 const ChatMessages: React.FC<Props> = ({ chat }) => {
 	const { username } = useUsernameContext();
+	console.log("USERNAME: " + username);
 	const { showSpinner } = useSpinner();
 
 	const [groupedMessages, setGroupedMessages] = useState<GroupedMessages[] | undefined>(

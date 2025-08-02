@@ -29,7 +29,7 @@ const Message = ({ message }: MessageProps) => {
 				</div>
 			) : (
 				<>
-					{myUsername == message.username.toLowerCase() ? (
+					{myUsername.toLowerCase() == message.username.toLowerCase() ? (
 						<div className="flex flex-col justify-center items-end w-full h-fit">
 							<div className="flex flex-col gap-1 justify-center items-center p-2 rounded-2xl rounded-br-none bg-blue-700 text-white text-center max-w-10/12">
 								{message.imageUrl ? (
