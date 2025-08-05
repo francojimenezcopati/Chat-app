@@ -15,25 +15,6 @@ public class MessageController {
 	private final MessageService messageService;
 	private final SupabaseService supabaseService;
 
-	@GetMapping
-	public ResponseEntity<ResponseDTO> getAll() {
-		ResponseDTO responseDTO = this.messageService.getAll();
-
-		return new ResponseEntity<>(responseDTO, responseDTO.status());
-	}
-
-	@PostMapping
-	public ResponseEntity<ResponseDTO> createMessage(@RequestBody MessageRequest request) {
-		ResponseDTO res = this.messageService.createMessage(
-				request.content(),
-				request.username(),
-				request.chatId(),
-				request.type()
-		);
-
-		return new ResponseEntity<>(res, res.status());
-	}
-
 	@PostMapping(path = "/upload-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<ResponseDTO> uploadMessageImage(
 			@RequestPart("imageFile") MultipartFile imageFile
@@ -46,20 +27,20 @@ public class MessageController {
 		return new ResponseEntity<>(res, res.status());
 	}
 
-	@PutMapping(path = "/{messageId}")
-	public ResponseEntity<ResponseDTO> updateMessage(
-			@PathVariable("messageId") Long messageId,
-			UpdateMessageRequest request
-	) {
-		ResponseDTO res = this.messageService.updateMessage(messageId, request.content());
-
-		return new ResponseEntity<>(res, res.status());
-	}
-
-	@DeleteMapping(path = "/{messageId}")
-	public ResponseEntity<ResponseDTO> deleteMessage(@PathVariable("messageId") Long messageId) {
-		ResponseDTO res = this.messageService.deleteMessage(messageId);
-
-		return new ResponseEntity<>(res, res.status());
-	}
+//	@PutMapping(path = "/{messageId}")
+//	public ResponseEntity<ResponseDTO> updateMessage(
+//			@PathVariable("messageId") Long messageId,
+//			UpdateMessageRequest request
+//	) {
+//		ResponseDTO res = this.messageService.updateMessage(messageId, request.content());
+//
+//		return new ResponseEntity<>(res, res.status());
+//	}
+//
+//	@DeleteMapping(path = "/{messageId}")
+//	public ResponseEntity<ResponseDTO> deleteMessage(@PathVariable("messageId") Long messageId) {
+//		ResponseDTO res = this.messageService.deleteMessage(messageId);
+//
+//		return new ResponseEntity<>(res, res.status());
+//	}
 }

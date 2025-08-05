@@ -57,5 +57,8 @@ public class AppInitializer implements CommandLineRunner {
 			System.out.println("----------------------" + "Mock data created" + "----------------------");
 			System.out.println("\n\n\n\n");
 		}
+		System.out.println("\n\n\n\n");
+		System.out.println("----------------------" + "App started" + "----------------------");
+		System.out.println("\n\n\n\n");
 	}
 }

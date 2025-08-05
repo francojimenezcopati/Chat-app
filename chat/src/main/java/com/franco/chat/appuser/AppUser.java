@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.LocalDate;
 import java.util.Date;
@@ -37,9 +38,11 @@ public class AppUser {
 			cascade = CascadeType.ALL,
 			orphanRemoval = true
 	)
+	@ToString.Exclude
 	private List<Message> messages;
 
 	@OneToMany(mappedBy = "appUser", cascade = CascadeType.ALL)
+	@ToString.Exclude
 	private List<ChatMembership> chatMemberships;
 
 	public AppUser(String username) {

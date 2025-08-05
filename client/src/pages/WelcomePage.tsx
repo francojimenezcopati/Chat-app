@@ -12,26 +12,27 @@ const WelcomePage = () => {
 		const username = (document.getElementById("username") as HTMLInputElement).value.trim();
 
 		showSpinner(true);
-		const success = await createUser({ username });
-		// const success = true;
-		if (success) {
-			const allUsernames = await getAllUsers();
-			showSpinner(false);
-			if (allUsernames !== null) {
-				if (allUsernames.length > 0) {
-					allUsernames.forEach((user) => {
-						if (username.toLowerCase() === user.username.toLowerCase()) {
-							console.log("Match found => " + user.username);
-							setUsername(user.username);
-						} else {
-							console.log("Username: " + user.username);
-						}
-					});
-				} else {
-					setUsername(username);
+		const allUsernames = await getAllUsers();
+
+		let isNewName = true;
+		if (allUsernames !== null && allUsernames.length > 0) {
+			allUsernames.forEach((user) => {
+				if (username.toLowerCase() === user.username.toLowerCase()) {
+					showSpinner(false);
+					setUsername(user.username);
+					console.log("MATCH: " + user.username);
+					isNewName = false;
 				}
+			});
+		}
+
+		if (isNewName) {
+			console.log("NOMBRE NUEVO");
+
+			const success = await createUser({ username });
+			if (success) {
+				setUsername(username);
 			}
-		} else {
 			showSpinner(false);
 		}
 	};

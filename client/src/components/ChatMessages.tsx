@@ -22,7 +22,6 @@ interface Props {
 
 const ChatMessages: React.FC<Props> = ({ chat }) => {
 	const { username } = useUsernameContext();
-	console.log("USERNAME: " + username);
 	const { showSpinner } = useSpinner();
 
 	const [groupedMessages, setGroupedMessages] = useState<GroupedMessages[] | undefined>(

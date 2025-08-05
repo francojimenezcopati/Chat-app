@@ -33,13 +33,13 @@ public class ChatController {
 		return new ResponseEntity<>(responseDTO, responseDTO.status());
 	}
 
-	@PutMapping(path = "{chatId}/add-users")
-	public ResponseEntity<ResponseDTO> addNewUsersToChat(
-			@PathVariable("chatId") Long chatId, @RequestBody AddNewUsersToChatRequest request) {
-		ResponseDTO responseDTO = this.chatService.addNewUsers(chatId, request.usernames());
-
-		return new ResponseEntity<>(responseDTO, responseDTO.status());
-	}
+//	@PutMapping(path = "{chatId}/add-users")
+//	public ResponseEntity<ResponseDTO> addNewUsersToChat(
+//			@PathVariable("chatId") Long chatId, @RequestBody AddNewUsersToChatRequest request) {
+//		ResponseDTO responseDTO = this.chatService.addNewUsers(chatId, request.usernames());
+//
+//		return new ResponseEntity<>(responseDTO, responseDTO.status());
+//	}
 
 	@PutMapping(path = "{chatId}/give-admin")
 	public ResponseEntity<ResponseDTO> giveAdminToUser(

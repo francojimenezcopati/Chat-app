@@ -1,5 +1,5 @@
 import { CONNECT_WEB_SOCKET_URL } from "@/utils/consts";
-import type { MessageRequest, MessageWithImageUrlRequest } from "@/utils/types";
+import type { AddMembersRequest, MessageRequest, MessageWithImageUrlRequest } from "@/utils/types";
 import { Client } from "@stomp/stompjs";
 
 let stompClient: Client;
@@ -20,6 +20,13 @@ export const connectWebSocket = (onConnected: () => void) => {
 	}
 };
 
+export const disconnectWebSocket = () => {
+	if (stompClient && stompClient.connected) {
+		stompClient.deactivate();
+		console.log("🔌 WebSocket disconnected");
+	}
+};
+
 export const sendMessageViaWS = ({ message }: { message: MessageRequest }) => {
 	stompClient.publish({
 		destination: "/app/chat/send-message",
@@ -35,6 +42,24 @@ export const sendMessageWithImageUrl = ({
 	stompClient.publish({
 		destination: "/app/chat/send-message/with-image",
 		body: JSON.stringify(messageWithImageUrl),
+	});
+};
+
+export const addMembersToChat = ({
+	addMembersRequest,
+}: {
+	addMembersRequest: AddMembersRequest;
+}) => {
+	stompClient.publish({
+		destination: "/app/chat/add-users",
+		body: JSON.stringify(addMembersRequest),
+	});
+};
+
+export const getUserChats = ({ username }: { username: string }) => {
+	stompClient.publish({
+		destination: "/app/chat/get-user-chats",
+		body: JSON.stringify({ username }),
 	});
 };
 

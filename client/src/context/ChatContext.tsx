@@ -2,8 +2,8 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ChatContext } from "./useChatContext";
 import type { ApiResponse, ChatContextType, ChatType, MessageInterface } from "../utils/types";
 import { getUserChats } from "../api/use.api";
-import { connectWebSocket, getStompClient } from "@/api/use.web-socket";
-import type { Frame } from "@stomp/stompjs";
+import { connectWebSocket, disconnectWebSocket, getStompClient } from "@/api/use.web-socket";
+import type { Client, Frame } from "@stomp/stompjs";
 import { toast } from "sonner";
 
 interface Props {
@@ -20,11 +20,15 @@ export const ChatProvider: React.FC<Props> = ({ children }) => {
 	const initializeUserChats = async ({ username }: { username: string }) => {
 		console.log("initializing...");
 		const retrievedChats = await getUserChats({ username });
-		console.log(retrievedChats);
 		if (retrievedChats && retrievedChats.length > 0) {
 			setChats(retrievedChats);
 
-			subscribeToChatViaWebSockets(retrievedChats);
+			connectWebSocket(() => {
+				const client = getStompClient();
+
+				subscribeToIndividualChats(client, retrievedChats);
+				subscribeToUserChats({ client, username });
+			});
 
 			const previousActiveChatList = retrievedChats.filter(
 				(chat) => chat.id! === activeChat?.id!,
@@ -39,48 +43,60 @@ export const ChatProvider: React.FC<Props> = ({ children }) => {
 		}
 	};
 
-	const subscribeToChatViaWebSockets = (chats: ChatType[]) => {
-		connectWebSocket(() => {
-			const client = getStompClient();
+	const subscribeToUserChats = ({ client, username }: { client: Client; username: string }) => {
+		console.log("username: " + username);
+		client.subscribe(`/topic/chat/${username}`, (frame: Frame) => {
+			const wsResponse: ApiResponse<ChatType[]> = JSON.parse(frame.body);
 
-			chats.forEach((chat) => {
-				client.subscribe(`/topic/chat/${chat.id}`, (frame: Frame) => {
-					const wsResponse: ApiResponse<MessageInterface | null> = JSON.parse(frame.body);
+			console.log("User chats response: ", wsResponse);
 
-					console.log("Response: ", wsResponse);
+			if (wsResponse.success) {
+				console.log("Retrieved chats: " + wsResponse.content);
+			} else {
+				toast.error("Something went wrong while retrieving the chats");
+				console.error(wsResponse.message);
+			}
+		});
+	};
 
-					if (wsResponse.success) {
-						const newMessage = wsResponse.content!;
-						console.log("📨 Mensaje recibido en chat", chat.id, newMessage);
+	const subscribeToIndividualChats = (client: Client, chats: ChatType[]) => {
+		chats.forEach((chat) => {
+			client.subscribe(`/topic/chat/${chat.id}`, (frame: Frame) => {
+				const wsResponse: ApiResponse<MessageInterface | null> = JSON.parse(frame.body);
 
-						setChats((prevState) => {
-							const updatedChats = prevState.map((mappedChat) => {
-								if (mappedChat.id! == chat.id!) {
-									return {
-										...mappedChat,
-										messages: [...mappedChat.messages, newMessage],
-									};
-								}
+				console.log("Response: ", wsResponse);
 
-								return mappedChat;
-							});
+				if (wsResponse.success) {
+					const newMessage = wsResponse.content!;
+					console.log("📨 Mensaje recibido en chat", chat.id, newMessage);
 
-							const previousActiveChatList = updatedChats.filter(
-								(chat) => chat.id! === activeChatRef.current?.id!,
-							);
-							if (previousActiveChatList.length === 1) {
-								setActiveChat(previousActiveChatList[0]);
-							} else {
-								setActiveChat(null);
+					setChats((prevState) => {
+						const updatedChats = prevState.map((mappedChat) => {
+							if (mappedChat.id! == chat.id!) {
+								return {
+									...mappedChat,
+									messages: [...mappedChat.messages, newMessage],
+								};
 							}
 
-							return updatedChats;
+							return mappedChat;
 						});
-					} else {
-						toast.error("Something went wrong with the message");
-						console.error(wsResponse.message);
-					}
-				});
+
+						const previousActiveChatList = updatedChats.filter(
+							(chat) => chat.id! === activeChatRef.current?.id!,
+						);
+						if (previousActiveChatList.length === 1) {
+							setActiveChat(previousActiveChatList[0]);
+						} else {
+							setActiveChat(null);
+						}
+
+						return updatedChats;
+					});
+				} else {
+					toast.error("Something went wrong with the message");
+					console.error(wsResponse.message);
+				}
 			});
 		});
 	};
@@ -88,6 +104,12 @@ export const ChatProvider: React.FC<Props> = ({ children }) => {
 	useEffect(() => {
 		activeChatRef.current = activeChat;
 	}, [activeChat]);
+
+	useEffect(() => {
+		return () => {
+			disconnectWebSocket();
+		};
+	}, []);
 
 	const contextData: ChatContextType = {
 		chats,

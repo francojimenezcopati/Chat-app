@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { useChatContext } from "@/context/useChatContext";
 import Modal from "./Modal";
 import { useSpinner } from "@/context/useSpinner";
-import { connectWebSocket, getStompClient } from "@/api/use.web-socket";
+import { connectWebSocket, getStompClient, getUserChats } from "@/api/use.web-socket";
 
 interface Props {
 	chats: ChatType[];
@@ -77,6 +77,10 @@ const ChatList: React.FC<Props> = ({ chats }) => {
 		setShowModal(false);
 	};
 
+	function retrieveChats() {
+		getUserChats({ username });
+	}
+
 	return (
 		<div className="w-full sm:w-1/3 flex flex-col items-center justify-start gap-10 h-full rounded-xl ">
 			<div className="w-full flex justify-between items-center">
@@ -102,6 +106,14 @@ const ChatList: React.FC<Props> = ({ chats }) => {
 						Create a new chat to begin!
 					</div>
 				)}
+				<div className="w-full p-5">
+					<button
+						className="w-full h-full rounded hover:cursor-pointer bg-red-500 p-3"
+						onClick={retrieveChats}
+					>
+						Retrieve chats
+					</button>
+				</div>
 			</div>
 
 			{showModal && (

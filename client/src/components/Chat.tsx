@@ -1,4 +1,4 @@
-import type { ChatType, MessageRequest } from "../utils/types";
+import type { AddMembersRequest, ChatType, MessageRequest } from "../utils/types";
 import ChatIcon from "./ChatIcon";
 
 import {
@@ -30,6 +30,7 @@ import { useSpinner } from "@/context/useSpinner";
 import ListItem from "./ListItem";
 import ConfirmModal from "./ConfirmModal";
 import ChatMessages from "./ChatMessages";
+import { addMembersToChat } from "@/api/use.web-socket";
 
 interface Props {
 	chat: ChatType | null;
@@ -178,35 +179,45 @@ const Chat: React.FC<Props> = ({ chat }) => {
 
 		if (usernamesSelected !== undefined && usernamesSelected.length > 0) {
 			showSpinner(true);
-			const success = await addUsersToChat({
+
+			const addMembersRequest: AddMembersRequest = {
 				chatId: chat!.id!,
 				usernames: usernamesSelected,
-			});
-			if (success) {
-				const formattedContent = usernamesSelected.reduce(
-					(prevValue, currentValue, index) => {
-						if (index < usernamesSelected.length - 1) {
-							return prevValue + ", " + currentValue;
-						} else {
-							return prevValue + " & " + currentValue;
-						}
-					},
-				);
+				adminUsername: username,
+			};
 
-				const generalMessage: MessageRequest = {
-					username,
-					content: `${username} added ${formattedContent}`,
-					chatId: chat?.id!,
-					type: "GENERAL",
-				};
+			addMembersToChat({ addMembersRequest });
 
-				await sendMessage({ message: generalMessage });
-
-				await initializeUserChats({ username });
-			}
+			// const success = await addUsersToChat({
+			// 	chatId: chat!.id!,
+			// 	usernames: usernamesSelected,
+			// });
+			// if (success) {
+			// 	const formattedContent = usernamesSelected.reduce(
+			// 		(prevValue, currentValue, index) => {
+			// 			if (index < usernamesSelected.length - 1) {
+			// 				return prevValue + ", " + currentValue;
+			// 			} else {
+			// 				return prevValue + " & " + currentValue;
+			// 			}
+			// 		},
+			// 	);
+			//
+			// 	const generalMessage: MessageRequest = {
+			// 		username,
+			// 		content: `${username} added ${formattedContent}`,
+			// 		chatId: chat?.id!,
+			// 		type: "GENERAL",
+			// 	};
+			//
+			// 	await sendMessage({ message: generalMessage });
+			//
+			//
+			// 	await initializeUserChats({ username });
+			// }
 			showSpinner(false);
 		} else {
-			toast.error("Something went wrong!");
+			toast.error("No user/s selected");
 		}
 		setShowMembersModal(false);
 	};

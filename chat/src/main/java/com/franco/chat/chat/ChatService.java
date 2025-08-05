@@ -3,6 +3,8 @@ package com.franco.chat.chat;
 import com.franco.chat.ResponseDTO;
 import com.franco.chat.appuser.AppUser;
 import com.franco.chat.appuser.AppUserRepository;
+import com.franco.chat.message.MessageService;
+import com.franco.chat.message.MessageType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,7 @@ public class ChatService {
 	private final ChatRepository chatRepository;
 	private final AppUserRepository appUserRepository;
 	private final ChatMembershipRepository chatMembershipRepository;
+	private final MessageService messageService;
 
 	public ResponseDTO getAll() {
 		List<Chat> chats = this.chatRepository.findAll();
@@ -70,13 +73,23 @@ public class ChatService {
 			if (optionalAppUser.isPresent()) {
 				AppUser appUser = optionalAppUser.get();
 
+				System.out.println("\n\n" + "Username :" + username + "\n\n");
+
 				List<ChatMembership> userMemberships = this.chatMembershipRepository.findAllByAppUser(appUser);
+
+				System.out.println("\n\n" + "After the membership get" + "\n\n");
+				System.out.println("\n\n" + "--- Memberships ---" + userMemberships + "\n\n");
 
 				List<ChatDTO> userChatDTOs = new ArrayList<>();
 				if (!userMemberships.isEmpty()) {
+					System.out.println("\n\n" + "In the memb isEmpty if" + "\n\n");
 					List<Chat> userChats = userMemberships.stream().map(ChatMembership::getChat).toList();
 
+					System.out.println("\n\n" + "After the map" + "\n\n");
 					userChatDTOs = userChats.stream().map(this.chatDTOMapper).toList();
+
+					System.out.println("\n\n" + "User chats: \n" + userChatDTOs + "\n\n");
+					System.out.println("\n\n" + "After the log chats" + "\n\n");
 				}
 
 				return new ResponseDTO(true, "", userChatDTOs, HttpStatus.OK);
@@ -84,11 +97,33 @@ public class ChatService {
 				return new ResponseDTO(false, "User not found", null, HttpStatus.NOT_FOUND);
 			}
 		} catch (Exception e) {
-			return new ResponseDTO(false, "One or more of the users not found", null, HttpStatus.NOT_FOUND);
+			return new ResponseDTO(false, "Error: " + e.getMessage(), null, HttpStatus.NOT_FOUND);
 		}
 	}
 
-	public ResponseDTO addNewUsers(Long chatId, List<String> usernames) {
+	private String formatUsernames(List<String> usernames) {
+		StringBuilder formattedUsernames = new StringBuilder();
+		int length = usernames.size();
+		for (int i = 0; i < length; i++) {
+			String username = usernames.get(i);
+
+			if (i > 0) {
+
+				if (i < length - 1) {
+					formattedUsernames.append(", ").append(username);
+				} else {
+					formattedUsernames.append(" & ").append(username);
+				}
+			} else {
+				// Si es el primer elemento, para que no empieze con ", "
+				formattedUsernames.append(username);
+			}
+		}
+
+		return formattedUsernames.toString();
+	}
+
+	public ResponseDTO addNewUsers(Long chatId, List<String> usernames, String adminUsername) {
 		try {
 			List<AppUser> newUsers = usernames.stream()
 					.map(this.appUserRepository::findByUsernameIgnoreCase)
@@ -105,7 +140,21 @@ public class ChatService {
 
 				this.chatMembershipRepository.saveAll(newChatMemberships);
 
-				return new ResponseDTO(true, "User/s successfully added", null, HttpStatus.OK);
+				String formattedUsernames = formatUsernames(usernames);
+				String formattedGeneralMessage = adminUsername + " added " + formattedUsernames;
+				ResponseDTO generalMessageResponse = this.messageService.createMessage(
+						formattedGeneralMessage,
+						adminUsername,
+						chatId,
+						MessageType.GENERAL
+				);
+
+				return new ResponseDTO(
+						true,
+						"User/s successfully added",
+						generalMessageResponse.content(),
+						HttpStatus.OK
+				);
 			} else {
 				return new ResponseDTO(false, "Chat not found", null, HttpStatus.NOT_FOUND);
 			}

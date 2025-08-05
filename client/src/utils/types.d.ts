@@ -77,6 +77,7 @@ export interface ChatRequest {
 export interface AddMembersRequest {
 	usernames: string[];
 	chatId: number;
+	adminUsername: string;
 }
 
 export interface MakeAdminRequest {
