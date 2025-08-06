@@ -7,13 +7,13 @@ import MultipleSelector, {
 	type MultipleSelectorRef,
 } from "@/components/ui/multiple-selector";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { createChat, getAllUsers } from "@/api/use.api";
+import { createChat, getAllUsers, getUserChats } from "@/api/use.api";
 import { useUsernameContext } from "@/context/useUsernameContext";
 import { toast } from "sonner";
 import { useChatContext } from "@/context/useChatContext";
 import Modal from "./Modal";
 import { useSpinner } from "@/context/useSpinner";
-import { connectWebSocket, getStompClient, getUserChats } from "@/api/use.web-socket";
+import { connectWebSocket, getStompClient, getUserChatsViaWS } from "@/api/use.web-socket";
 
 interface Props {
 	chats: ChatType[];
@@ -78,7 +78,11 @@ const ChatList: React.FC<Props> = ({ chats }) => {
 	};
 
 	function retrieveChats() {
-		getUserChats({ username });
+		getUserChatsViaWS({ username });
+	}
+
+	function retrieveChatsViaHTTP() {
+		getUserChats({ username }).then((chats) => console.log(chats));
 	}
 
 	return (
@@ -112,6 +116,14 @@ const ChatList: React.FC<Props> = ({ chats }) => {
 						onClick={retrieveChats}
 					>
 						Retrieve chats
+					</button>
+				</div>
+				<div className="w-full p-0">
+					<button
+						className="w-full text-black h-full rounded hover:cursor-pointer bg-green-500 p-3"
+						onClick={retrieveChatsViaHTTP}
+					>
+						Retrieve via HTTP
 					</button>
 				</div>
 			</div>

@@ -52,6 +52,18 @@ public class WebSocketChatController {
 		String destination = "/topic/chat/" + request.chatId();
 		messagingTemplate.convertAndSend(destination, responseDTO);
 	}
+
+	@MessageMapping("/chat/expel-user")
+	public void expelMemberFromChat(
+			@Payload ExpelMemberRequest request
+	) {
+		System.out.println("\n\n"+ request +"\n\n");
+		ResponseDTO responseDTO = this.chatService.removeMember(request.adminUsername(), request.chatId(), request.username());
+
+		// 🔥 BROADCAST a todos los usuarios en el chat
+		String destination = "/topic/chat/" + request.chatId();
+		messagingTemplate.convertAndSend(destination, responseDTO);
+	}
 	//
 	//	@PutMapping(path = "{chatId}/give-admin")
 	//	public ResponseEntity<ResponseDTO> giveAdminToUser(

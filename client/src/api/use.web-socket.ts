@@ -1,5 +1,10 @@
 import { CONNECT_WEB_SOCKET_URL } from "@/utils/consts";
-import type { AddMembersRequest, MessageRequest, MessageWithImageUrlRequest } from "@/utils/types";
+import type {
+	AddMembersRequest,
+	ExpelUserRequest,
+	MessageRequest,
+	MessageWithImageUrlRequest,
+} from "@/utils/types";
 import { Client } from "@stomp/stompjs";
 
 let stompClient: Client;
@@ -56,7 +61,14 @@ export const addMembersToChat = ({
 	});
 };
 
-export const getUserChats = ({ username }: { username: string }) => {
+export const expelUserFromChat = ({ expelUserRequest }: { expelUserRequest: ExpelUserRequest }) => {
+	stompClient.publish({
+		destination: "/app/chat/expel-user",
+		body: JSON.stringify(expelUserRequest),
+	});
+};
+
+export const getUserChatsViaWS = ({ username }: { username: string }) => {
 	stompClient.publish({
 		destination: "/app/chat/get-user-chats",
 		body: JSON.stringify({ username }),

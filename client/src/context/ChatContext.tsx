@@ -44,14 +44,26 @@ export const ChatProvider: React.FC<Props> = ({ children }) => {
 	};
 
 	const subscribeToUserChats = ({ client, username }: { client: Client; username: string }) => {
-		console.log("username: " + username);
 		client.subscribe(`/topic/chat/${username}`, (frame: Frame) => {
 			const wsResponse: ApiResponse<ChatType[]> = JSON.parse(frame.body);
 
 			console.log("User chats response: ", wsResponse);
 
 			if (wsResponse.success) {
-				console.log("Retrieved chats: " + wsResponse.content);
+				const chats = wsResponse.content;
+				console.log("Retrieved chats: ", chats.length, chats);
+				console.log("First chat: " + chats[0]);
+
+				setChats(chats);
+
+				const previousActiveChatList = chats.filter(
+					(chat) => chat.id! === activeChatRef.current?.id!,
+				);
+				if (previousActiveChatList.length === 1) {
+					setActiveChat(previousActiveChatList[0]);
+				} else {
+					setActiveChat(null);
+				}
 			} else {
 				toast.error("Something went wrong while retrieving the chats");
 				console.error(wsResponse.message);

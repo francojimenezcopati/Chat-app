@@ -1,11 +1,12 @@
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import ConfirmModal from "./ConfirmModal";
-import type { ChatMembership, MessageRequest } from "@/utils/types";
+import type { ChatMembership, ExpelUserRequest, MessageRequest } from "@/utils/types";
 import { useState } from "react";
 import { useUsernameContext } from "@/context/useUsernameContext";
 import { giveAdminToUser, removeMember, sendMessage } from "@/api/use.api";
 import { useChatContext } from "@/context/useChatContext";
 import { useSpinner } from "@/context/useSpinner";
+import { expelUserFromChat } from "@/api/use.web-socket";
 
 interface Props {
 	chatMembership: ChatMembership;
@@ -40,28 +41,17 @@ const ListItem: React.FC<Props> = ({ chatMembership }) => {
 
 		showSpinner(true);
 
-		const success = await removeMember({
-			chatId: activeChat?.id!,
+		console.log("Removing " + chatMembership.user.username + "...");
+
+		const expelUserRequest: ExpelUserRequest = {
 			username: chatMembership.user.username,
-		});
+			adminUsername: username,
+			chatId: activeChat?.id!,
+		};
 
-		if (success) {
-			const generalMessage: MessageRequest = {
-				username,
-				content: `${username} expelled ${chatMembership.user.username}`,
-				chatId: activeChat?.id!,
-				type: "GENERAL",
-			};
+		expelUserFromChat({ expelUserRequest });
 
-			await sendMessage({ message: generalMessage });
-
-			setSync(true);
-
-			showSpinner(false);
-		} else {
-			showSpinner(false);
-			setShowMyself(true);
-		}
+		showSpinner(false);
 	};
 
 	const [showMyself, setShowMyself] = useState(true);

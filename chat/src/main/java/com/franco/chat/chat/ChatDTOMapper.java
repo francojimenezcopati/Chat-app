@@ -21,25 +21,29 @@ public class ChatDTOMapper implements Function<Chat, ChatDTO> {
 
 	@Override
 	public ChatDTO apply(Chat chat) {
+		try {
 
-		System.out.println("\n\n" + "In the Mapper apply" + "\n\n");
-		List<ChatMembership> chatMemberships = this.chatMembershipRepository.findAllByChat(chat);
-		System.out.println("\n\n" + "After the memb call" + "\n\n");
-		List<ChatMembershipDTO> membersDTO = chatMemberships.stream().map(this.chatMembershipDTOMapper).toList();
-		System.out.println("\n\n" + "After the membDTOMapper apply call" + "\n\n");
-		System.out.println("\n\n" + "---- Chat name: ----" + chat.getName() );
-		System.out.println("\n\n" + "---- Chat : ----" + chat );
-		System.out.println("---- Chat messages: ----" + chat.getMessages()+ "\n\n");
-		List<MessageDTO> messagesDTO = chat.getMessages().stream().map(this.messageDTOMapper).toList();
-		System.out.println("\n\n" + "After the messageDTOMapper apply call" + "\n\n");
+			System.out.println("\n\n" + "In the Mapper apply" );
+			List<ChatMembership> chatMemberships = this.chatMembershipRepository.findAllByChat(chat);
+			System.out.println("\n\n" + "After the memb call" );
+			List<ChatMembershipDTO> membersDTO = chatMemberships.stream().map(this.chatMembershipDTOMapper).toList();
+			System.out.println("\n\n" + "After the membDTOMapper apply call" );
+			System.out.println("\n\n" + "---- Chat name: ----" + chat.getName());
+			System.out.println("---- Chat messages length: ----" + chat.getMessages().size() );
+			List<MessageDTO> messagesDTO = chat.getMessages().stream().map(this.messageDTOMapper).toList();
+			System.out.println("\n\n" + "After the messageDTOMapper apply call" );
 
-		return new ChatDTO(
-				chat.getId(),
-				chat.getName(),
-				this.appUserDTOMapper.apply(chat.getCreatedBy()),
-				chat.getCreatedAt(),
-				membersDTO,
-				messagesDTO
-		);
+			return new ChatDTO(
+					chat.getId(),
+					chat.getName(),
+					this.appUserDTOMapper.apply(chat.getCreatedBy()),
+					chat.getCreatedAt(),
+					membersDTO,
+					messagesDTO
+			);
+		} catch (Exception e) {
+			System.out.println("\n\n" + "---- ERRORRRRR -------- ----" + e.getMessage());
+			throw new RuntimeException(e);
+		}
 	}
 }

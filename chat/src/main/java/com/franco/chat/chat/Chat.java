@@ -29,19 +29,10 @@ public class Chat {
 	private AppUser createdBy;
 
 	@OneToMany(mappedBy = "chat", cascade = CascadeType.ALL, orphanRemoval = true)
-	@ToString.Exclude
 	private List<Message> messages;
 
 	@OneToMany(mappedBy = "chat", cascade = CascadeType.ALL)
 	private List<ChatMembership> chatMemberships;
-
-	//	@ManyToMany
-	//	@JoinTable(
-	//			name = "app_user_chat",
-	//			joinColumns = @JoinColumn(name = "chat_id"),
-	//			inverseJoinColumns = @JoinColumn(name = "app_user_id")
-	//	)
-	//	private List<AppUser> participants;
 
 	public Chat(String name, AppUser creator) {
 		this.name = name;

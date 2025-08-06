@@ -52,7 +52,7 @@ public class ChatController {
 	@DeleteMapping(path = "{chatId}/remove-member")
 	public ResponseEntity<ResponseDTO> removeMember(
 			@PathVariable("chatId") Long chatId, @RequestBody AppUserRequest request) {
-		ResponseDTO responseDTO = this.chatService.removeMember(chatId, request.username());
+		ResponseDTO responseDTO = this.chatService.removeMember("SpringBootApp", chatId, request.username());
 
 		return new ResponseEntity<>(responseDTO, responseDTO.status());
 	}

@@ -80,6 +80,12 @@ export interface AddMembersRequest {
 	adminUsername: string;
 }
 
+export interface ExpelUserRequest {
+	username: string;
+	chatId: number;
+	adminUsername: string;
+}
+
 export interface MakeAdminRequest {
 	username: string;
 	chatId: number;

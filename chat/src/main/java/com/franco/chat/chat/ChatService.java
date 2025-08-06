@@ -8,9 +8,8 @@ import com.franco.chat.message.MessageType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -67,6 +66,7 @@ public class ChatService {
 		}
 	}
 
+	@Transactional
 	public ResponseDTO getUserChats(String username) {
 		try {
 			Optional<AppUser> optionalAppUser = this.appUserRepository.findByUsernameIgnoreCase(username);
@@ -75,22 +75,11 @@ public class ChatService {
 
 				System.out.println("\n\n" + "Username :" + username + "\n\n");
 
-				List<ChatMembership> userMemberships = this.chatMembershipRepository.findAllByAppUser(appUser);
+				List<Chat> userChats = this.chatMembershipRepository.findChatsWithMessagesAndMembersByAppUser(appUser);
 
-				System.out.println("\n\n" + "After the membership get" + "\n\n");
-				System.out.println("\n\n" + "--- Memberships ---" + userMemberships + "\n\n");
+				List<ChatDTO> userChatDTOs = userChats.stream().map(this.chatDTOMapper).toList();
 
-				List<ChatDTO> userChatDTOs = new ArrayList<>();
-				if (!userMemberships.isEmpty()) {
-					System.out.println("\n\n" + "In the memb isEmpty if" + "\n\n");
-					List<Chat> userChats = userMemberships.stream().map(ChatMembership::getChat).toList();
-
-					System.out.println("\n\n" + "After the map" + "\n\n");
-					userChatDTOs = userChats.stream().map(this.chatDTOMapper).toList();
-
-					System.out.println("\n\n" + "User chats: \n" + userChatDTOs + "\n\n");
-					System.out.println("\n\n" + "After the log chats" + "\n\n");
-				}
+				System.out.println("\n\n" + "User chats length: \n" + userChatDTOs.size() + "\n\n");
 
 				return new ResponseDTO(true, "", userChatDTOs, HttpStatus.OK);
 			} else {
@@ -121,46 +110,6 @@ public class ChatService {
 		}
 
 		return formattedUsernames.toString();
-	}
-
-	public ResponseDTO addNewUsers(Long chatId, List<String> usernames, String adminUsername) {
-		try {
-			List<AppUser> newUsers = usernames.stream()
-					.map(this.appUserRepository::findByUsernameIgnoreCase)
-					.map(Optional::orElseThrow)
-					.toList();
-
-			Optional<Chat> optionalChat = this.chatRepository.findById(chatId);
-			if (optionalChat.isPresent()) {
-				Chat chat = optionalChat.get();
-
-				List<ChatMembership> newChatMemberships = newUsers.stream()
-						.map(user -> new ChatMembership(user, chat, false))
-						.toList();
-
-				this.chatMembershipRepository.saveAll(newChatMemberships);
-
-				String formattedUsernames = formatUsernames(usernames);
-				String formattedGeneralMessage = adminUsername + " added " + formattedUsernames;
-				ResponseDTO generalMessageResponse = this.messageService.createMessage(
-						formattedGeneralMessage,
-						adminUsername,
-						chatId,
-						MessageType.GENERAL
-				);
-
-				return new ResponseDTO(
-						true,
-						"User/s successfully added",
-						generalMessageResponse.content(),
-						HttpStatus.OK
-				);
-			} else {
-				return new ResponseDTO(false, "Chat not found", null, HttpStatus.NOT_FOUND);
-			}
-		} catch (Exception e) {
-			return new ResponseDTO(false, "One or more of the users not found", null, HttpStatus.NOT_FOUND);
-		}
 	}
 
 
@@ -225,8 +174,48 @@ public class ChatService {
 		}
 	}
 
+	public ResponseDTO addNewUsers(Long chatId, List<String> usernames, String adminUsername) {
+		try {
+			List<AppUser> newUsers = usernames.stream()
+					.map(this.appUserRepository::findByUsernameIgnoreCase)
+					.map(Optional::orElseThrow)
+					.toList();
 
-	public ResponseDTO removeMember(Long chatId, String username) {
+			Optional<Chat> optionalChat = this.chatRepository.findById(chatId);
+			if (optionalChat.isPresent()) {
+				Chat chat = optionalChat.get();
+
+				List<ChatMembership> newChatMemberships = newUsers.stream()
+						.map(user -> new ChatMembership(user, chat, false))
+						.toList();
+
+				this.chatMembershipRepository.saveAll(newChatMemberships);
+
+				String formattedUsernames = formatUsernames(usernames);
+				String formattedGeneralMessage = adminUsername + " added " + formattedUsernames;
+				ResponseDTO generalMessageResponse = this.messageService.createMessage(
+						formattedGeneralMessage,
+						adminUsername,
+						chatId,
+						MessageType.GENERAL
+				);
+
+				return new ResponseDTO(
+						true,
+						"User/s successfully added",
+						generalMessageResponse.content(),
+						HttpStatus.OK
+				);
+			} else {
+				return new ResponseDTO(false, "Chat not found", null, HttpStatus.NOT_FOUND);
+			}
+		} catch (Exception e) {
+			return new ResponseDTO(false, "One or more of the users not found", null, HttpStatus.NOT_FOUND);
+		}
+	}
+
+	@Transactional
+	public ResponseDTO removeMember(String adminUsername, Long chatId, String username) {
 		Optional<Chat> optionalChat = this.chatRepository.findById(chatId);
 		try {
 			if (optionalChat.isPresent()) {
@@ -234,14 +223,24 @@ public class ChatService {
 				if (optionalAppUser.isPresent()) {
 					AppUser userToRemove = optionalAppUser.get();
 
-					ChatMembership membership = this.chatMembershipRepository.findByAppUserIdAndChatId(
-							userToRemove.getId(),
-							chatId
-					).orElseThrow();
+					this.chatMembershipRepository.deleteByAppUserIdAndChatId(userToRemove.getId(), chatId);
 
-					this.chatMembershipRepository.delete(membership);
+					System.out.println( username + " removed" + "\n\n");
 
-					return new ResponseDTO(true, "User successfully deleted from chat", null, HttpStatus.OK);
+					String generalMessageContent = adminUsername + " expelled " + username;
+					ResponseDTO generalMessageResponse = this.messageService.createMessage(
+							generalMessageContent,
+							adminUsername,
+							chatId,
+							MessageType.GENERAL
+					);
+
+					return new ResponseDTO(
+							true,
+							"User successfully removed from chat",
+							generalMessageResponse.content(),
+							HttpStatus.OK
+					);
 				} else {
 					return new ResponseDTO(false, "User not found", null, HttpStatus.NOT_FOUND);
 				}
@@ -252,7 +251,7 @@ public class ChatService {
 			System.out.println(e.getMessage());
 			return new ResponseDTO(
 					false,
-					"Something went wrong while deleting",
+					"Something went wrong while expeling " + username,
 					null,
 					HttpStatus.INTERNAL_SERVER_ERROR
 			);
