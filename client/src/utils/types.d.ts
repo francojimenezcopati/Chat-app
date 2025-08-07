@@ -39,9 +39,14 @@ export interface ChatContextType {
 	setChats: React.Dispatch<React.SetStateAction<ChatType[]>>;
 	activeChat: ChatType | null;
 	setActiveChat: React.Dispatch<React.SetStateAction<ChatType | null>>;
-	initializeUserChats: ({ username }: { username: string }) => Promise<void>;
-	sync: boolean;
-	setSync: React.Dispatch<React.SetStateAction<boolean>>;
+	initializeUserChats: ({ username }: { username: string }) => Promise<ChatType[]>;
+	connectWebSocketAndSubscribe: ({
+		chatsToSubscribe,
+		username,
+	}: {
+		chatsToSubscribe: ChatType[];
+		username: string;
+	}) => void;
 }
 
 export interface SpinnerContextType {

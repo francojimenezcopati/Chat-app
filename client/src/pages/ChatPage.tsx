@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import Chat from "../components/Chat";
 import ChatList from "../components/ChatList";
-import type { ChatType, MessageInterface } from "../utils/types";
 import "./ChatPage.css";
 import { useChatContext } from "../context/useChatContext";
 import { useSpinner } from "@/context/useSpinner";
@@ -11,7 +10,8 @@ interface Props {
 }
 
 const ChatPage: React.FC<Props> = ({ username }) => {
-	const { initializeUserChats, activeChat, chats } = useChatContext();
+	const { initializeUserChats, activeChat, chats, connectWebSocketAndSubscribe } =
+		useChatContext();
 	const { showSpinner } = useSpinner();
 
 	// Para ver si se usa en pantallas chicas vvvvvvv
@@ -32,7 +32,8 @@ const ChatPage: React.FC<Props> = ({ username }) => {
 
 	const asyncUseEffectFn = async () => {
 		showSpinner(true);
-		await initializeUserChats({ username });
+		const chatsToSubscribe = await initializeUserChats({ username });
+		connectWebSocketAndSubscribe({ username, chatsToSubscribe });
 		showSpinner(false);
 	};
 

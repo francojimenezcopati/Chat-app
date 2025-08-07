@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import type { AppUser, ChatRequest, ChatType, MessageInterface } from "../utils/types";
+import type { ChatRequest, ChatType } from "../utils/types";
 import ChatPreview from "./ChatPreview";
 
 import MultipleSelector, {
@@ -10,10 +10,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { createChat, getAllUsers, getUserChats } from "@/api/use.api";
 import { useUsernameContext } from "@/context/useUsernameContext";
 import { toast } from "sonner";
-import { useChatContext } from "@/context/useChatContext";
 import Modal from "./Modal";
 import { useSpinner } from "@/context/useSpinner";
-import { connectWebSocket, getStompClient, getUserChatsViaWS } from "@/api/use.web-socket";
+import { getUserChatsViaWS } from "@/api/use.web-socket";
 
 interface Props {
 	chats: ChatType[];
@@ -21,7 +20,6 @@ interface Props {
 
 const ChatList: React.FC<Props> = ({ chats }) => {
 	const { username } = useUsernameContext();
-	const { initializeUserChats } = useChatContext();
 	const { showSpinner } = useSpinner();
 
 	const [showModal, setShowModal] = useState(false);
@@ -67,7 +65,8 @@ const ChatList: React.FC<Props> = ({ chats }) => {
 
 			const res = await createChat({ chat });
 			if (res !== null) {
-				initializeUserChats({ username });
+				// initializeUserChats({ username });
+				getUserChatsViaWS({ username });
 			}
 
 			showSpinner(false);

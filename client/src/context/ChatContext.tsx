@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ChatContext } from "./useChatContext";
-import type { ApiResponse, ChatContextType, ChatType, MessageInterface } from "../utils/types";
+import type {
+	ApiResponse,
+	AppUser,
+	ChatContextType,
+	ChatType,
+	MessageInterface,
+} from "../utils/types";
 import { getUserChats } from "../api/use.api";
 import { connectWebSocket, disconnectWebSocket, getStompClient } from "@/api/use.web-socket";
 import type { Client, Frame } from "@stomp/stompjs";
@@ -13,7 +19,6 @@ interface Props {
 export const ChatProvider: React.FC<Props> = ({ children }) => {
 	const [activeChat, setActiveChat] = useState<ChatType | null>(null);
 	const [chats, setChats] = useState<ChatType[]>([]);
-	const [sync, setSync] = useState(false);
 
 	const activeChatRef = useRef<ChatType | null>(null);
 
@@ -23,13 +28,6 @@ export const ChatProvider: React.FC<Props> = ({ children }) => {
 		if (retrievedChats && retrievedChats.length > 0) {
 			setChats(retrievedChats);
 
-			connectWebSocket(() => {
-				const client = getStompClient();
-
-				subscribeToIndividualChats(client, retrievedChats);
-				subscribeToUserChats({ client, username });
-			});
-
 			const previousActiveChatList = retrievedChats.filter(
 				(chat) => chat.id! === activeChat?.id!,
 			);
@@ -38,9 +36,46 @@ export const ChatProvider: React.FC<Props> = ({ children }) => {
 			} else {
 				setActiveChat(null);
 			}
+
+			return retrievedChats;
 		} else {
 			setChats([]);
+
+			return [];
 		}
+	};
+
+	const connectWebSocketAndSubscribe = ({
+		chatsToSubscribe,
+		username,
+	}: {
+		chatsToSubscribe: ChatType[];
+		username: string;
+	}) => {
+		connectWebSocket(() => {
+			const client = getStompClient();
+
+			subscribeToIndividualChats(client, chatsToSubscribe);
+			subscribeToUserChats({ client, username });
+		});
+	};
+
+	const subscribeToGetAllUsers = (client: Client) => {
+		const a = client.subscribe(`/topic/all-users`, (frame: Frame) => {
+			const wsResponse: ApiResponse<AppUser[] | null> = JSON.parse(frame.body);
+
+			console.log("All users response: ", wsResponse);
+
+			if (wsResponse.success) {
+				const allUsers = wsResponse.content!;
+				console.log("📨 Retrieved users: ", allUsers.length, allUsers);
+
+				// NOTE: actualizar
+			} else {
+				toast.error("Something went wrong while retrieving all the users");
+				console.error(wsResponse.message);
+			}
+		});
 	};
 
 	const subscribeToUserChats = ({ client, username }: { client: Client; username: string }) => {
@@ -51,8 +86,7 @@ export const ChatProvider: React.FC<Props> = ({ children }) => {
 
 			if (wsResponse.success) {
 				const chats = wsResponse.content;
-				console.log("Retrieved chats: ", chats.length, chats);
-				console.log("First chat: " + chats[0]);
+				console.log("📨 Retrieved chats: ", chats.length, chats);
 
 				setChats(chats);
 
@@ -129,8 +163,7 @@ export const ChatProvider: React.FC<Props> = ({ children }) => {
 		activeChat,
 		setActiveChat,
 		initializeUserChats,
-		sync,
-		setSync,
+		connectWebSocketAndSubscribe,
 	};
 
 	return <ChatContext.Provider value={contextData}>{children}</ChatContext.Provider>;

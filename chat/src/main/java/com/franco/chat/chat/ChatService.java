@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -225,9 +226,13 @@ public class ChatService {
 
 					this.chatMembershipRepository.deleteByAppUserIdAndChatId(userToRemove.getId(), chatId);
 
-					System.out.println( username + " removed" + "\n\n");
+					String generalMessageContent;
+					if (Objects.equals(adminUsername, username)) {
+						generalMessageContent = username + " left the chat";
+					} else {
+						generalMessageContent = adminUsername + " expelled " + username;
+					}
 
-					String generalMessageContent = adminUsername + " expelled " + username;
 					ResponseDTO generalMessageResponse = this.messageService.createMessage(
 							generalMessageContent,
 							adminUsername,

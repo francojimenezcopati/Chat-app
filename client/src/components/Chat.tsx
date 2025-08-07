@@ -1,13 +1,7 @@
-import type { AddMembersRequest, ChatType, MessageRequest } from "../utils/types";
+import type { AddMembersRequest, ChatType, ExpelUserRequest, MessageRequest } from "../utils/types";
 import ChatIcon from "./ChatIcon";
 
-import {
-	addUsersToChat,
-	editChatName,
-	getAllUsers,
-	removeMember,
-	sendMessage,
-} from "@/api/use.api";
+import { editChatName, getAllUsers } from "@/api/use.api";
 import { useUsernameContext } from "@/context/useUsernameContext";
 import { useEffect, useRef, useState } from "react";
 
@@ -30,14 +24,14 @@ import { useSpinner } from "@/context/useSpinner";
 import ListItem from "./ListItem";
 import ConfirmModal from "./ConfirmModal";
 import ChatMessages from "./ChatMessages";
-import { addMembersToChat } from "@/api/use.web-socket";
+import { addMembersToChat, expelUserFromChat, getUserChatsViaWS } from "@/api/use.web-socket";
 
 interface Props {
 	chat: ChatType | null;
 }
 
 const Chat: React.FC<Props> = ({ chat }) => {
-	const { initializeUserChats, sync, setSync, setActiveChat } = useChatContext();
+	const { initializeUserChats, setActiveChat } = useChatContext();
 	const { username } = useUsernameContext();
 	const { showSpinner } = useSpinner();
 
@@ -69,21 +63,6 @@ const Chat: React.FC<Props> = ({ chat }) => {
 			chat.members.sort((left, right) => (left.isAdmin && !right.isAdmin ? -1 : 1));
 		}
 	}, [chat]);
-
-	const asyncUseEffect = async () => {
-		showSpinner(true);
-
-		await initializeUserChats({ username });
-
-		showSpinner(false);
-		setSync(false);
-	};
-
-	useEffect(() => {
-		if (sync && !showManageMembersModal) {
-			asyncUseEffect();
-		}
-	}, [sync, showManageMembersModal]);
 
 	// Click en TRIGGERS de MODALES vvv
 
@@ -135,21 +114,20 @@ const Chat: React.FC<Props> = ({ chat }) => {
 
 	const handleConfirmExitChat = async () => {
 		showSpinner(true);
-		const success = await removeMember({ username: username.toLowerCase(), chatId: chat!.id! });
-		if (success) {
-			await initializeUserChats({ username: username.toLowerCase() });
 
-			const generalMessage: MessageRequest = {
-				username,
-				content: `${username} left the group`,
-				chatId: chat?.id!,
-				type: "GENERAL",
-			};
+		const expelUserRequest: ExpelUserRequest = {
+			username: username,
+			adminUsername: username,
+			chatId: chat?.id!,
+		};
 
-			await sendMessage({ message: generalMessage });
+		expelUserFromChat({ expelUserRequest });
 
+		setTimeout(() => {
+			getUserChatsViaWS({ username });
 			setActiveChat(null);
-		}
+		}, 5);
+
 		showSpinner(false);
 	};
 
@@ -164,7 +142,7 @@ const Chat: React.FC<Props> = ({ chat }) => {
 		const success = await editChatName({ name: newChatName, chatId: chat!.id! });
 
 		if (success) {
-			await initializeUserChats({ username });
+			getUserChatsViaWS({ username });
 		}
 
 		showSpinner(false);
@@ -188,33 +166,10 @@ const Chat: React.FC<Props> = ({ chat }) => {
 
 			addMembersToChat({ addMembersRequest });
 
-			// const success = await addUsersToChat({
-			// 	chatId: chat!.id!,
-			// 	usernames: usernamesSelected,
-			// });
-			// if (success) {
-			// 	const formattedContent = usernamesSelected.reduce(
-			// 		(prevValue, currentValue, index) => {
-			// 			if (index < usernamesSelected.length - 1) {
-			// 				return prevValue + ", " + currentValue;
-			// 			} else {
-			// 				return prevValue + " & " + currentValue;
-			// 			}
-			// 		},
-			// 	);
-			//
-			// 	const generalMessage: MessageRequest = {
-			// 		username,
-			// 		content: `${username} added ${formattedContent}`,
-			// 		chatId: chat?.id!,
-			// 		type: "GENERAL",
-			// 	};
-			//
-			// 	await sendMessage({ message: generalMessage });
-			//
-			//
-			// 	await initializeUserChats({ username });
-			// }
+			setTimeout(() => {
+				getUserChatsViaWS({ username });
+			}, 5);
+
 			showSpinner(false);
 		} else {
 			toast.error("No user/s selected");
@@ -440,8 +395,8 @@ const Chat: React.FC<Props> = ({ chat }) => {
 				>
 					<>
 						<div className="bg-gray-800 rounded-xl border  h-full max-h-[70vh]  flex flex-col items-center justify-start p-2 overflow-y-auto custom-scroll">
-							{chat?.members.map((membership, index) => (
-								<ListItem chatMembership={membership} key={index} />
+							{chat?.members.map((membership) => (
+								<ListItem chatMembership={membership} key={membership.user.id!} />
 							))}
 						</div>
 					</>

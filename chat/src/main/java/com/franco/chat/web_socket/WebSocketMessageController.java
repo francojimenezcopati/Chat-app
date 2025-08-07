@@ -24,7 +24,6 @@ public class WebSocketMessageController {
 	private final MessageService messageService;
 	private final SimpMessagingTemplate messagingTemplate;
 
-
 	@MessageMapping("/chat/send-message")
 	public void handleSendMessage(@Payload MessageRequest request) {
 		ResponseDTO response = messageService.createMessage(

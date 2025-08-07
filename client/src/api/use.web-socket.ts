@@ -75,4 +75,10 @@ export const getUserChatsViaWS = ({ username }: { username: string }) => {
 	});
 };
 
+export const getAllUsersViaWS = () => {
+	stompClient.publish({
+		destination: "/app/user/get-all",
+	});
+};
+
 export const getStompClient = () => stompClient;

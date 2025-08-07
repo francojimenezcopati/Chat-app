@@ -6,15 +6,16 @@ import { useUsernameContext } from "@/context/useUsernameContext";
 import { giveAdminToUser, removeMember, sendMessage } from "@/api/use.api";
 import { useChatContext } from "@/context/useChatContext";
 import { useSpinner } from "@/context/useSpinner";
-import { expelUserFromChat } from "@/api/use.web-socket";
+import { expelUserFromChat, getUserChatsViaWS } from "@/api/use.web-socket";
 
 interface Props {
 	chatMembership: ChatMembership;
 }
 
 const ListItem: React.FC<Props> = ({ chatMembership }) => {
+	console.log(chatMembership);
 	const { username } = useUsernameContext();
-	const { activeChat, initializeUserChats, setSync } = useChatContext();
+	const { activeChat } = useChatContext();
 	const { showSpinner } = useSpinner();
 
 	const onGiveAdminClick = async () => {
@@ -28,7 +29,8 @@ const ListItem: React.FC<Props> = ({ chatMembership }) => {
 		});
 
 		if (success) {
-			await initializeUserChats({ username });
+			getUserChatsViaWS({ username });
+
 			showSpinner(false);
 		} else {
 			showSpinner(false);
@@ -50,6 +52,10 @@ const ListItem: React.FC<Props> = ({ chatMembership }) => {
 		};
 
 		expelUserFromChat({ expelUserRequest });
+
+		setTimeout(() => {
+			getUserChatsViaWS({ username });
+		}, 5);
 
 		showSpinner(false);
 	};

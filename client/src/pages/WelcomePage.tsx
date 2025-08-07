@@ -12,11 +12,11 @@ const WelcomePage = () => {
 		const username = (document.getElementById("username") as HTMLInputElement).value.trim();
 
 		showSpinner(true);
-		const allUsernames = await getAllUsers();
+		const allUsers = await getAllUsers();
 
 		let isNewName = true;
-		if (allUsernames !== null && allUsernames.length > 0) {
-			allUsernames.forEach((user) => {
+		if (allUsers !== null && allUsers.length > 0) {
+			allUsers.forEach((user) => {
 				if (username.toLowerCase() === user.username.toLowerCase()) {
 					showSpinner(false);
 					setUsername(user.username);
