@@ -1,4 +1,4 @@
-import type { AddMembersRequest, ChatType, ExpelUserRequest, MessageRequest } from "../utils/types";
+import type { AddMembersRequest, ChatType, ExpelUserRequest } from "../utils/types";
 import ChatIcon from "./ChatIcon";
 
 import { editChatName, getAllUsers } from "@/api/use.api";
@@ -31,7 +31,7 @@ interface Props {
 }
 
 const Chat: React.FC<Props> = ({ chat }) => {
-	const { initializeUserChats, setActiveChat } = useChatContext();
+	const { setActiveChat } = useChatContext();
 	const { username } = useUsernameContext();
 	const { showSpinner } = useSpinner();
 
@@ -190,7 +190,7 @@ const Chat: React.FC<Props> = ({ chat }) => {
 									<img
 										className="w-9 h-9 hover:cursor-pointer"
 										src="back-arrow.svg"
-										onClick={() => console.log("go back")}
+										onClick={() => setActiveChat(null)}
 									/>
 								</TooltipTrigger>
 								<TooltipContent>

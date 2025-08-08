@@ -13,40 +13,41 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Controller
 @RequiredArgsConstructor
 public class WebSocketChatController {
 	private final ChatService chatService;
 	private final SimpMessagingTemplate messagingTemplate;
-
-	@MessageMapping("/chat/create-chat")
-	//	@SendTo("/topic/chat")
-	public ResponseEntity<ResponseDTO> createChat(@RequestBody ChatRequest request) {
-		ResponseDTO responseDTO = this.chatService.createChat(
-				request.name(),
-				request.creator(),
-				request.membersNames()
-		);
-
-		return new ResponseEntity<>(responseDTO, responseDTO.status());
-	}
+	private static final String DESTINATION_PREFIX = "/topic/user/";
 
 	@MessageMapping("/chat/get-user-chats")
 	public void getAllUserChats(@Payload AppUserRequest request) {
 		ResponseDTO responseDTO = this.chatService.getUserChats(request.username());
 
-		System.out.println("\n\n"+ "All user chats getted" +"\n\n");
-
 		// 🔥 BROADCAST a todos los usuarios en el chat
-		String destination = "/topic/chat/" + request.username();
-		messagingTemplate.convertAndSend(destination, responseDTO);
+		String destination = DESTINATION_PREFIX + request.username();
+
+		WebSocketResponse response;
+		if (responseDTO.success()) {
+			response = new WebSocketResponse.ChatListUpdated((List<ChatDTO>) responseDTO.content());
+		} else {
+			response = new WebSocketResponse.ErrorResponse(responseDTO.message());
+		}
+
+		messagingTemplate.convertAndSend(destination, response);
 	}
 
 	@MessageMapping("/chat/add-users")
 	public void addNewUsersToChat(
 			@Payload AddNewUsersToChatRequest request
 	) {
-		ResponseDTO responseDTO = this.chatService.addNewUsers(request.chatId(), request.usernames(), request.adminUsername());
+		ResponseDTO responseDTO = this.chatService.addNewUsers(
+				request.chatId(),
+				request.usernames(),
+				request.adminUsername()
+		);
 
 		// 🔥 BROADCAST a todos los usuarios en el chat
 		String destination = "/topic/chat/" + request.chatId();
@@ -57,8 +58,12 @@ public class WebSocketChatController {
 	public void expelMemberFromChat(
 			@Payload ExpelMemberRequest request
 	) {
-		System.out.println("\n\n"+ request +"\n\n");
-		ResponseDTO responseDTO = this.chatService.removeMember(request.adminUsername(), request.chatId(), request.username());
+		System.out.println("\n\n" + request + "\n\n");
+		ResponseDTO responseDTO = this.chatService.removeMember(
+				request.adminUsername(),
+				request.chatId(),
+				request.username()
+		);
 
 		// 🔥 BROADCAST a todos los usuarios en el chat
 		String destination = "/topic/chat/" + request.chatId();
@@ -69,14 +74,6 @@ public class WebSocketChatController {
 	//	public ResponseEntity<ResponseDTO> giveAdminToUser(
 	//			@PathVariable("chatId") Long chatId, @RequestBody GiveAdminRequest request) {
 	//		ResponseDTO responseDTO = this.chatService.giveAdminToUser(chatId, request.username());
-	//
-	//		return new ResponseEntity<>(responseDTO, responseDTO.status());
-	//	}
-	//
-	//	@DeleteMapping(path = "{chatId}/remove-member")
-	//	public ResponseEntity<ResponseDTO> removeMember(
-	//			@PathVariable("chatId") Long chatId, @RequestBody AppUserRequest request) {
-	//		ResponseDTO responseDTO = this.chatService.removeMember(chatId, request.username());
 	//
 	//		return new ResponseEntity<>(responseDTO, responseDTO.status());
 	//	}

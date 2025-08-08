@@ -20,7 +20,7 @@ public class WebSocketUserController {
 		ResponseDTO responseDTO = this.appUserService.getAll();
 
 		// 🔥 BROADCAST a todos los usuarios en el chat
-		String destination = "/topic/all-users";
+		String destination = "/topic/users-list";
 		messagingTemplate.convertAndSend(destination, responseDTO);
 	}
 }

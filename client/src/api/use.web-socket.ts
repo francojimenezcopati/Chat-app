@@ -7,21 +7,46 @@ import type {
 } from "@/utils/types";
 import { Client } from "@stomp/stompjs";
 
+interface PendingSubscription {
+	destination: string;
+	callback: (wsResponse: any) => void;
+}
+
 let stompClient: Client;
+
+const pendingSubscriptions: PendingSubscription[] = [];
+
+export const getStompClient = () => stompClient;
 
 export const connectWebSocket = (onConnected: () => void) => {
 	console.log("trying to connect...");
 	if (stompClient == undefined) {
 		stompClient = new Client({
 			brokerURL: CONNECT_WEB_SOCKET_URL,
+			reconnectDelay: 0,
 			onConnect: () => {
 				console.log("✅ WebSocket connected");
+
+				pendingSubscriptions.forEach(({ destination, callback }) => {
+					subscribeToChannel(destination, callback);
+				});
+				pendingSubscriptions.length = 0;
+
 				onConnected();
 			},
-			reconnectDelay: 0,
 		});
 
 		stompClient.activate();
+	}
+};
+
+export const subscribeToChannel = (destination: string, callback: (wsResponse: any) => void) => {
+	if (stompClient && stompClient.connected) {
+		// Si ya está conectado, nos suscribimos de una
+		stompClient.subscribe(destination, (frame) => callback(JSON.parse(frame.body)));
+	} else {
+		// Si todavía no está conectado, lo guardamos para después
+		pendingSubscriptions.push({ destination, callback });
 	}
 };
 
@@ -80,5 +105,3 @@ export const getAllUsersViaWS = () => {
 		destination: "/app/user/get-all",
 	});
 };
-
-export const getStompClient = () => stompClient;

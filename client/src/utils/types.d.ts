@@ -6,7 +6,6 @@ export interface MessageInterface {
 	createdAt: string;
 	type: MessageType;
 	imageUrl: string | null;
-	fake?: boolean;
 }
 
 export interface GroupedMessages {

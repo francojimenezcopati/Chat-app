@@ -7,12 +7,12 @@ import MultipleSelector, {
 	type MultipleSelectorRef,
 } from "@/components/ui/multiple-selector";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { createChat, getAllUsers, getUserChats } from "@/api/use.api";
+import { createChat, getAllUsers } from "@/api/use.api";
 import { useUsernameContext } from "@/context/useUsernameContext";
 import { toast } from "sonner";
 import Modal from "./Modal";
 import { useSpinner } from "@/context/useSpinner";
-import { getUserChatsViaWS } from "@/api/use.web-socket";
+import { getAllUsersViaWS, getUserChatsViaWS } from "@/api/use.web-socket";
 
 interface Props {
 	chats: ChatType[];
@@ -81,7 +81,7 @@ const ChatList: React.FC<Props> = ({ chats }) => {
 	}
 
 	function retrieveChatsViaHTTP() {
-		getUserChats({ username }).then((chats) => console.log(chats));
+		getAllUsersViaWS();
 	}
 
 	return (
@@ -122,7 +122,7 @@ const ChatList: React.FC<Props> = ({ chats }) => {
 						className="w-full text-black h-full rounded hover:cursor-pointer bg-green-500 p-3"
 						onClick={retrieveChatsViaHTTP}
 					>
-						Retrieve via HTTP
+						Get all users
 					</button>
 				</div>
 			</div>
