@@ -31,6 +31,7 @@ export interface MessageWithImageUrlRequest {
 export interface UsernameContextType {
 	username: string;
 	setUsername: (username: string) => void;
+	allUsers: AppUser[];
 }
 
 export interface ChatContextType {
@@ -98,6 +99,7 @@ export interface MakeAdminRequest {
 export interface EditChatNameRequest {
 	name: string;
 	chatId: number;
+	adminUsername: string;
 }
 
 export interface ApiResponse<T = unknown> {

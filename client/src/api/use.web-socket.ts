@@ -1,7 +1,9 @@
 import { CONNECT_WEB_SOCKET_URL } from "@/utils/consts";
 import type {
 	AddMembersRequest,
+	EditChatNameRequest,
 	ExpelUserRequest,
+	MakeAdminRequest,
 	MessageRequest,
 	MessageWithImageUrlRequest,
 } from "@/utils/types";
@@ -90,6 +92,28 @@ export const expelUserFromChat = ({ expelUserRequest }: { expelUserRequest: Expe
 	stompClient.publish({
 		destination: "/app/chat/expel-user",
 		body: JSON.stringify(expelUserRequest),
+	});
+};
+
+export const giveAdminToUserViaWS = ({
+	makeAdminRequest,
+}: {
+	makeAdminRequest: MakeAdminRequest;
+}) => {
+	stompClient.publish({
+		destination: "/app/chat/give-admin",
+		body: JSON.stringify(makeAdminRequest),
+	});
+};
+
+export const editChatNameViaWS = ({
+	editChatNameRequest,
+}: {
+	editChatNameRequest: EditChatNameRequest;
+}) => {
+	stompClient.publish({
+		destination: "/app/chat/edit-name",
+		body: JSON.stringify(editChatNameRequest),
 	});
 };
 

@@ -10,6 +10,7 @@ interface Props {
 
 export const UsernameProvider: React.FC<Props> = ({ children }) => {
 	const [username, setUsername] = useState<string>("");
+	const [allUsers, setAllUsers] = useState<AppUser[]>([]);
 
 	useEffect(() => {
 		if (username) {
@@ -20,6 +21,8 @@ export const UsernameProvider: React.FC<Props> = ({ children }) => {
 					const users = wsResponse.content;
 
 					console.log("Users", users);
+
+					setAllUsers(users);
 				} else {
 					toast.error("Something went wrong while retrieving the chats");
 					console.error(wsResponse.message);
@@ -31,6 +34,7 @@ export const UsernameProvider: React.FC<Props> = ({ children }) => {
 	const contextData: UsernameContextType = {
 		username,
 		setUsername,
+		allUsers,
 	};
 
 	return <UsernameContext.Provider value={contextData}>{children}</UsernameContext.Provider>;

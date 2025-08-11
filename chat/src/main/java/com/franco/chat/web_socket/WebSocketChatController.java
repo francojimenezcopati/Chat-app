@@ -20,23 +20,14 @@ import java.util.List;
 public class WebSocketChatController {
 	private final ChatService chatService;
 	private final SimpMessagingTemplate messagingTemplate;
-	private static final String DESTINATION_PREFIX = "/topic/user/";
 
 	@MessageMapping("/chat/get-user-chats")
 	public void getAllUserChats(@Payload AppUserRequest request) {
 		ResponseDTO responseDTO = this.chatService.getUserChats(request.username());
 
 		// 🔥 BROADCAST a todos los usuarios en el chat
-		String destination = DESTINATION_PREFIX + request.username();
-
-		WebSocketResponse response;
-		if (responseDTO.success()) {
-			response = new WebSocketResponse.ChatListUpdated((List<ChatDTO>) responseDTO.content());
-		} else {
-			response = new WebSocketResponse.ErrorResponse(responseDTO.message());
-		}
-
-		messagingTemplate.convertAndSend(destination, response);
+		String destination = "/topic/chat/" + request.username();
+		messagingTemplate.convertAndSend(destination, responseDTO);
 	}
 
 	@MessageMapping("/chat/add-users")
@@ -69,20 +60,26 @@ public class WebSocketChatController {
 		String destination = "/topic/chat/" + request.chatId();
 		messagingTemplate.convertAndSend(destination, responseDTO);
 	}
-	//
-	//	@PutMapping(path = "{chatId}/give-admin")
-	//	public ResponseEntity<ResponseDTO> giveAdminToUser(
-	//			@PathVariable("chatId") Long chatId, @RequestBody GiveAdminRequest request) {
-	//		ResponseDTO responseDTO = this.chatService.giveAdminToUser(chatId, request.username());
-	//
-	//		return new ResponseEntity<>(responseDTO, responseDTO.status());
-	//	}
-	//
-	//	@PutMapping(path = "{chatId}/edit-name")
-	//	public ResponseEntity<ResponseDTO> editChatName(
-	//			@PathVariable("chatId") Long chatId, @RequestBody EditChatNameRequest request) {
-	//		ResponseDTO responseDTO = this.chatService.editChatName(chatId, request.name());
-	//
-	//		return new ResponseEntity<>(responseDTO, responseDTO.status());
-	//	}
+
+	@MessageMapping("/chat/give-admin")
+	public void giveAdminToUser(@Payload GiveAdminRequest request) {
+		ResponseDTO responseDTO = this.chatService.giveAdminToUser(request.chatId(), request.username());
+
+		// 🔥 BROADCAST a todos los usuarios en el chat
+		String destination = "/topic/chat/" + request.chatId() + "/admins-updates";
+		messagingTemplate.convertAndSend(destination, responseDTO);
+	}
+
+	@MessageMapping("/chat/edit-name")
+	public void editChatName(@Payload EditChatNameRequest request) {
+		ResponseDTO responseDTO = this.chatService.editChatName(
+				request.chatId(),
+				request.adminUsername(),
+				request.name()
+		);
+
+		// 🔥 BROADCAST a todos los usuarios en el chat
+		String destination = "/topic/chat/" + request.chatId();
+		messagingTemplate.convertAndSend(destination, responseDTO);
+	}
 }

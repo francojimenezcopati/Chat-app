@@ -11,9 +11,9 @@ import { useUsernameContext } from "@/context/useUsernameContext";
 import { useEffect, useRef, useState } from "react";
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { sendMessage, sendMessageWithAnImage, uploadMessageImage } from "@/api/use.api";
+import { uploadMessageImage } from "@/api/use.api";
 import React from "react";
-import { getStompClient, sendMessageViaWS, sendMessageWithImageUrl } from "@/api/use.web-socket";
+import { sendMessageViaWS, sendMessageWithImageUrl } from "@/api/use.web-socket";
 import { useSpinner } from "@/context/useSpinner";
 
 interface Props {

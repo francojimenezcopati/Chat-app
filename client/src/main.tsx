@@ -8,12 +8,12 @@ import { SpinnerProvider } from "./context/SpinnerContext.tsx";
 
 createRoot(document.getElementById("root")!).render(
 	<StrictMode>
-		<ChatProvider>
-			<UsernameProvider>
-				<SpinnerProvider>
+		<SpinnerProvider>
+			<ChatProvider>
+				<UsernameProvider>
 					<App />
-				</SpinnerProvider>
-			</UsernameProvider>
-		</ChatProvider>
+				</UsernameProvider>
+			</ChatProvider>
+		</SpinnerProvider>
 	</StrictMode>,
 );

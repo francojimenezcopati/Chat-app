@@ -1,49 +1,45 @@
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import ConfirmModal from "./ConfirmModal";
-import type { ChatMembership, ExpelUserRequest, MessageRequest } from "@/utils/types";
+import type { ChatMembership, ExpelUserRequest, MakeAdminRequest } from "@/utils/types";
 import { useState } from "react";
 import { useUsernameContext } from "@/context/useUsernameContext";
-import { giveAdminToUser, removeMember, sendMessage } from "@/api/use.api";
 import { useChatContext } from "@/context/useChatContext";
 import { useSpinner } from "@/context/useSpinner";
-import { expelUserFromChat, getUserChatsViaWS } from "@/api/use.web-socket";
+import { expelUserFromChat, getUserChatsViaWS, giveAdminToUserViaWS } from "@/api/use.web-socket";
 
 interface Props {
 	chatMembership: ChatMembership;
 }
 
 const ListItem: React.FC<Props> = ({ chatMembership }) => {
-	console.log(chatMembership);
 	const { username } = useUsernameContext();
 	const { activeChat } = useChatContext();
 	const { showSpinner } = useSpinner();
 
 	const onGiveAdminClick = async () => {
 		chatMembership.isAdmin = true;
+		console.log("Givin admin to " + chatMembership.user.username);
 
 		showSpinner(true);
 
-		const success = await giveAdminToUser({
+		const makeAdminRequest: MakeAdminRequest = {
 			chatId: activeChat?.id!,
 			username: chatMembership.user.username,
-		});
+		};
 
-		if (success) {
+		giveAdminToUserViaWS({ makeAdminRequest });
+
+		setTimeout(() => {
 			getUserChatsViaWS({ username });
+		}, 10);
 
-			showSpinner(false);
-		} else {
-			showSpinner(false);
-			chatMembership.isAdmin = false;
-		}
+		showSpinner(false);
 	};
 
 	const onExpelClick = async () => {
 		setShowMyself(false);
 
 		showSpinner(true);
-
-		console.log("Removing " + chatMembership.user.username + "...");
 
 		const expelUserRequest: ExpelUserRequest = {
 			username: chatMembership.user.username,
@@ -55,7 +51,7 @@ const ListItem: React.FC<Props> = ({ chatMembership }) => {
 
 		setTimeout(() => {
 			getUserChatsViaWS({ username });
-		}, 5);
+		}, 10);
 
 		showSpinner(false);
 	};

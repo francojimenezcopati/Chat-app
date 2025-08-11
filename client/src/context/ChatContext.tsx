@@ -1,21 +1,23 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ChatContext } from "./useChatContext";
-import type {
-	ApiResponse,
-	AppUser,
-	ChatContextType,
-	ChatType,
-	MessageInterface,
-} from "../utils/types";
+import type { ApiResponse, ChatContextType, ChatType, MessageInterface } from "../utils/types";
 import { getUserChats } from "../api/use.api";
-import { connectWebSocket, disconnectWebSocket, subscribeToChannel } from "@/api/use.web-socket";
+import {
+	connectWebSocket,
+	disconnectWebSocket,
+	getAllUsersViaWS,
+	subscribeToChannel,
+} from "@/api/use.web-socket";
 import { toast } from "sonner";
+import { useSpinner } from "./useSpinner";
 
 interface Props {
 	children: ReactNode;
 }
 
 export const ChatProvider: React.FC<Props> = ({ children }) => {
+	const { showSpinner } = useSpinner();
+
 	const [activeChat, setActiveChat] = useState<ChatType | null>(null);
 	const [chats, setChats] = useState<ChatType[]>([]);
 
@@ -51,30 +53,39 @@ export const ChatProvider: React.FC<Props> = ({ children }) => {
 		chatsToSubscribe: ChatType[];
 		username: string;
 	}) => {
+		showSpinner(true);
+
 		connectWebSocket(() => {
-			subscribeToIndividualChats(chatsToSubscribe);
+			showSpinner(false);
+
+			chatsToSubscribe.forEach((chat) => {
+				subscribeToIndividualChat(chat);
+				subscribeToAdminsUpdates(chat);
+			});
 			subscribeToUserChats(username);
-			subscribeToUsersList();
+
+			getAllUsersViaWS();
 		});
 	};
 
-	const subscribeToUsersList = () => {
-		subscribeToChannel("/topic/users-list", (wsResponse: ApiResponse<AppUser[]>) => {
-			// console.log("Users list response: ", wsResponse);
-			//
-			// if (wsResponse.success) {
-			// 	const users = wsResponse.content;
-			//
-			// 	console.log("Users", users);
-			// } else {
-			// 	toast.error("Something went wrong while retrieving the chats");
-			// 	console.error(wsResponse.message);
-			// }
-		});
+	const subscribeToAdminsUpdates = (chat: ChatType) => {
+		subscribeToChannel(
+			`/topic/chat/${chat.id!}/admins-updates`,
+			(wsResponse: ApiResponse<null>) => {
+				console.log("Admin update: ", wsResponse);
+
+				if (wsResponse.success) {
+					toast.success(wsResponse.message);
+				} else {
+					toast.error("Something went wrong");
+					console.error(wsResponse.message);
+				}
+			},
+		);
 	};
 
 	const subscribeToUserChats = (username: string) => {
-		subscribeToChannel(`/topic/user/${username}`, (wsResponse: ApiResponse<ChatType[]>) => {
+		subscribeToChannel(`/topic/chat/${username}`, (wsResponse: ApiResponse<ChatType[]>) => {
 			console.log("User chats response: ", wsResponse);
 
 			if (wsResponse.success) {
@@ -98,47 +109,45 @@ export const ChatProvider: React.FC<Props> = ({ children }) => {
 		});
 	};
 
-	const subscribeToIndividualChats = (chats: ChatType[]) => {
-		chats.forEach((chat) => {
-			subscribeToChannel(
-				`/topic/chat/${chat.id}`,
-				(wsResponse: ApiResponse<MessageInterface | null>) => {
-					console.log("Response: ", wsResponse);
+	const subscribeToIndividualChat = (chat: ChatType) => {
+		subscribeToChannel(
+			`/topic/chat/${chat.id}`,
+			(wsResponse: ApiResponse<MessageInterface | null>) => {
+				console.log("Response: ", wsResponse);
 
-					if (wsResponse.success) {
-						const newMessage = wsResponse.content!;
-						console.log("📨 Mensaje recibido en chat", chat.id, newMessage);
+				if (wsResponse.success) {
+					const newMessage = wsResponse.content!;
+					console.log("📨 Mensaje recibido en chat", chat.id, newMessage);
 
-						setChats((prevState) => {
-							const updatedChats = prevState.map((mappedChat) => {
-								if (mappedChat.id! == chat.id!) {
-									return {
-										...mappedChat,
-										messages: [...mappedChat.messages, newMessage],
-									};
-								}
-
-								return mappedChat;
-							});
-
-							const previousActiveChatList = updatedChats.filter(
-								(chat) => chat.id! === activeChatRef.current?.id!,
-							);
-							if (previousActiveChatList.length === 1) {
-								setActiveChat(previousActiveChatList[0]);
-							} else {
-								setActiveChat(null);
+					setChats((prevState) => {
+						const updatedChats = prevState.map((mappedChat) => {
+							if (mappedChat.id! == chat.id!) {
+								return {
+									...mappedChat,
+									messages: [...mappedChat.messages, newMessage],
+								};
 							}
 
-							return updatedChats;
+							return mappedChat;
 						});
-					} else {
-						toast.error("Something went wrong with the message");
-						console.error(wsResponse.message);
-					}
-				},
-			);
-		});
+
+						const previousActiveChatList = updatedChats.filter(
+							(chat) => chat.id! === activeChatRef.current?.id!,
+						);
+						if (previousActiveChatList.length === 1) {
+							setActiveChat(previousActiveChatList[0]);
+						} else {
+							setActiveChat(null);
+						}
+
+						return updatedChats;
+					});
+				} else {
+					toast.error("Something went wrong with the message");
+					console.error(wsResponse.message);
+				}
+			},
+		);
 	};
 
 	useEffect(() => {

@@ -60,7 +60,7 @@ public class ChatController {
 	@PutMapping(path = "{chatId}/edit-name")
 	public ResponseEntity<ResponseDTO> editChatName(
 			@PathVariable("chatId") Long chatId, @RequestBody EditChatNameRequest request) {
-		ResponseDTO responseDTO = this.chatService.editChatName(chatId, request.name());
+		ResponseDTO responseDTO = this.chatService.editChatName(chatId, request.adminUsername(), request.name());
 
 		return new ResponseEntity<>(responseDTO, responseDTO.status());
 	}

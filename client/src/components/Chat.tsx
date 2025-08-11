@@ -1,7 +1,12 @@
-import type { AddMembersRequest, ChatType, ExpelUserRequest } from "../utils/types";
+import type {
+	AddMembersRequest,
+	ChatType,
+	EditChatNameRequest,
+	ExpelUserRequest,
+} from "../utils/types";
 import ChatIcon from "./ChatIcon";
 
-import { editChatName, getAllUsers } from "@/api/use.api";
+import { editChatName } from "@/api/use.api";
 import { useUsernameContext } from "@/context/useUsernameContext";
 import { useEffect, useRef, useState } from "react";
 
@@ -24,7 +29,12 @@ import { useSpinner } from "@/context/useSpinner";
 import ListItem from "./ListItem";
 import ConfirmModal from "./ConfirmModal";
 import ChatMessages from "./ChatMessages";
-import { addMembersToChat, expelUserFromChat, getUserChatsViaWS } from "@/api/use.web-socket";
+import {
+	addMembersToChat,
+	editChatNameViaWS,
+	expelUserFromChat,
+	getUserChatsViaWS,
+} from "@/api/use.web-socket";
 
 interface Props {
 	chat: ChatType | null;
@@ -32,7 +42,7 @@ interface Props {
 
 const Chat: React.FC<Props> = ({ chat }) => {
 	const { setActiveChat } = useChatContext();
-	const { username } = useUsernameContext();
+	const { username, allUsers } = useUsernameContext();
 	const { showSpinner } = useSpinner();
 
 	const [showManageMembersModal, setShowManageMembersModal] = useState(false);
@@ -87,27 +97,24 @@ const Chat: React.FC<Props> = ({ chat }) => {
 
 	const handleAddMembersClick = () => {
 		setShowMembersModal(true);
-		getAllUsers().then((users) => {
-			if (users !== null) {
-				let options: Option[] = [];
-				users.forEach((user) => {
-					if (!memberUsernames?.includes(user.username)) {
-						options.push({
-							label: user.username,
-							value: user.username,
-							disable:
-								user.username.toLowerCase() == username.toLowerCase()
-									? true
-									: false,
-						});
-					}
-				});
 
-				setOptions(options);
-			} else {
-				setShowMembersModal(false);
-			}
-		});
+		if (allUsers.length > 0) {
+			let options: Option[] = [];
+			allUsers.forEach((user) => {
+				if (!memberUsernames?.includes(user.username)) {
+					options.push({
+						label: user.username,
+						value: user.username,
+						disable:
+							user.username.toLowerCase() == username.toLowerCase() ? true : false,
+					});
+				}
+			});
+
+			setOptions(options);
+		} else {
+			setOptions([]);
+		}
 	};
 
 	// Click en Confirmar de MODALES vvv
@@ -139,11 +146,17 @@ const Chat: React.FC<Props> = ({ chat }) => {
 
 		console.log(newChatName);
 
-		const success = await editChatName({ name: newChatName, chatId: chat!.id! });
+		const editChatNameRequest: EditChatNameRequest = {
+			name: newChatName,
+			chatId: chat!.id!,
+			adminUsername: username,
+		};
 
-		if (success) {
+		editChatNameViaWS({ editChatNameRequest });
+
+		setTimeout(() => {
 			getUserChatsViaWS({ username });
-		}
+		}, 10);
 
 		showSpinner(false);
 		setShowEditChatModal(false);
@@ -183,7 +196,7 @@ const Chat: React.FC<Props> = ({ chat }) => {
 				<>
 					{/* TOP BAR */}
 
-					<div className="w-full flex justify-between items-center py-2 drop-shadow-xl drop-shadow-gray-700 shadow-sm shadow-gray-800/50">
+					<div className="w-full flex justify-between items-center py-2  drop-shadow-gray-700 shadow-sm shadow-gray-800/50">
 						<div className="ml-3 mr-2 sm:hidden min-w-6">
 							<Tooltip>
 								<TooltipTrigger>
@@ -354,7 +367,7 @@ const Chat: React.FC<Props> = ({ chat }) => {
 							hidePlaceholderWhenSelected
 							emptyIndicator={
 								<p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
-									{options.length < 1 ? "..." : "Not users found"}
+									Not users found
 								</p>
 							}
 						/>
@@ -380,6 +393,9 @@ const Chat: React.FC<Props> = ({ chat }) => {
 								defaultValue={chat?.name}
 								className="text-gray-100 focus:outline-none autofill:shadow-inner autofill:bg-slate-600"
 								type="text"
+								onKeyDown={(e) =>
+									e.key === "Enter" ? handleConfirmEditChatName(e) : null
+								}
 							/>
 						</div>
 					</>

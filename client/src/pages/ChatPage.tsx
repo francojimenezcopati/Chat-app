@@ -34,7 +34,6 @@ const ChatPage: React.FC<Props> = ({ username }) => {
 		showSpinner(true);
 		const chatsToSubscribe = await initializeUserChats({ username });
 		connectWebSocketAndSubscribe({ username, chatsToSubscribe });
-		showSpinner(false);
 	};
 
 	useEffect(() => {

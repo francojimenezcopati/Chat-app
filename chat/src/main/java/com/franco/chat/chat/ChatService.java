@@ -263,7 +263,7 @@ public class ChatService {
 		}
 	}
 
-	public ResponseDTO editChatName(Long chatId, String name) {
+	public ResponseDTO editChatName(Long chatId, String adminUsername, String name) {
 		Optional<Chat> optionalChat = this.chatRepository.findById(chatId);
 		try {
 			if (optionalChat.isPresent()) {
@@ -273,7 +273,16 @@ public class ChatService {
 
 				this.chatRepository.save(chat);
 
-				return new ResponseDTO(true, "Chat name changed", null, HttpStatus.OK);
+				String generalMessageContent = adminUsername + " changed the name of the chat to '" + name + "'";
+
+				ResponseDTO generalMessageResponse = this.messageService.createMessage(
+						generalMessageContent,
+						adminUsername,
+						chatId,
+						MessageType.GENERAL
+				);
+
+				return new ResponseDTO(true, "Chat name changed", generalMessageResponse.content(), HttpStatus.OK);
 			} else {
 				return new ResponseDTO(false, "Chat not found", null, HttpStatus.NOT_FOUND);
 			}

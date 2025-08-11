@@ -12,14 +12,14 @@ import { useUsernameContext } from "@/context/useUsernameContext";
 import { toast } from "sonner";
 import Modal from "./Modal";
 import { useSpinner } from "@/context/useSpinner";
-import { getAllUsersViaWS, getUserChatsViaWS } from "@/api/use.web-socket";
+import { getUserChatsViaWS } from "@/api/use.web-socket";
 
 interface Props {
 	chats: ChatType[];
 }
 
 const ChatList: React.FC<Props> = ({ chats }) => {
-	const { username } = useUsernameContext();
+	const { username, allUsers } = useUsernameContext();
 	const { showSpinner } = useSpinner();
 
 	const [showModal, setShowModal] = useState(false);
@@ -81,7 +81,7 @@ const ChatList: React.FC<Props> = ({ chats }) => {
 	}
 
 	function retrieveChatsViaHTTP() {
-		getAllUsersViaWS();
+		console.log(allUsers);
 	}
 
 	return (
@@ -122,7 +122,7 @@ const ChatList: React.FC<Props> = ({ chats }) => {
 						className="w-full text-black h-full rounded hover:cursor-pointer bg-green-500 p-3"
 						onClick={retrieveChatsViaHTTP}
 					>
-						Get all users
+						Print all users
 					</button>
 				</div>
 			</div>
